@@ -2,10 +2,14 @@
   "name": "move-survey",
   "private": true,
   "workspaces": [
-    "catalog"
+    "catalog",
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "catalog:build": "npm run build -w catalog",
-    "test": "npm test --workspaces --if-present"
+    "dev": "npm run dev -w @move-survey/web",
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   }
 }

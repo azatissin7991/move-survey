@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "event": {
+      "type": "string",
+      "enum": [
+        "survey.started",
+        "survey.processing_failed",
+        "survey.ready_for_review",
+        "survey.customer_confirmed",
+        "survey.approved"
+      ]
+    },
+    "surveyId": {
+      "type": "string"
+    },
+    "externalRef": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "occurredAt": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "event",
+    "surveyId",
+    "externalRef",
+    "revision",
+    "occurredAt"
+  ]
+}

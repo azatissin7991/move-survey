@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "externalRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "The CRM's id for this quote/job"
+    },
+    "customer": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+        },
+        "language": {
+          "default": "en",
+          "type": "string",
+          "enum": [
+            "en",
+            "ru"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "move": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "homeType": {
+          "type": "string",
+          "enum": [
+            "apartment",
+            "house",
+            "townhouse",
+            "condo",
+            "storage",
+            "office",
+            "other"
+          ]
+        },
+        "bedrooms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "originAddress": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "moveDate": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+        }
+      }
+    },
+    "expiresInDays": {
+      "default": 14,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60
+    }
+  },
+  "required": [
+    "externalRef",
+    "customer"
+  ]
+}

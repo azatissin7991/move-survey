@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "surveyId": {
+      "type": "string"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "catalogVersion": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "catalogId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "object",
+            "properties": {
+              "en": {
+                "type": "string"
+              },
+              "ru": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "en",
+              "ru"
+            ]
+          },
+          "roomType": {
+            "type": "string",
+            "enum": [
+              "living_room",
+              "family_room",
+              "dining_room",
+              "kitchen",
+              "bedroom",
+              "kids_room",
+              "nursery",
+              "office",
+              "bathroom",
+              "laundry",
+              "hallway",
+              "garage",
+              "basement",
+              "attic",
+              "patio",
+              "storage",
+              "other"
+            ]
+          },
+          "roomLabel": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "cuFtEach": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "weightLbsEach": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "fragile",
+                "disassembly",
+                "heavy",
+                "crating",
+                "special"
+              ]
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "catalogId",
+          "name",
+          "roomType",
+          "roomLabel",
+          "quantity",
+          "cuFtEach",
+          "weightLbsEach",
+          "flags",
+          "notes"
+        ]
+      }
+    },
+    "totals": {
+      "type": "object",
+      "properties": {
+        "cuFt": {
+          "type": "number"
+        },
+        "weightLbs": {
+          "type": "number"
+        },
+        "items": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "boxes": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "cuFt",
+        "weightLbs",
+        "items",
+        "boxes"
+      ]
+    }
+  },
+  "required": [
+    "surveyId",
+    "revision",
+    "catalogVersion",
+    "items",
+    "totals"
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "extends": "../../catalog/tsconfig.json",
+  "include": ["src", "scripts"]
+}
