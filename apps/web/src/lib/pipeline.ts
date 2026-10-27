@@ -9,14 +9,12 @@ export async function enqueueRun(input: {
   surveyId: string;
   stage: PipelineStage;
   roomId?: string;
-  roomRevision?: number;
 }) {
   const run = await db.pipelineRun.create({
     data: {
       surveyId: input.surveyId,
       stage: input.stage,
       roomId: input.roomId ?? null,
-      roomRevision: input.roomRevision ?? null,
     },
   });
   await kickWorker(run.id);

@@ -74,7 +74,7 @@
           },
           "needsMeasurement": {
             "type": "boolean",
-            "description": "Size decides the variant or price and couldn't be read reliably"
+            "description": "Size decides the variant or price and couldn't be read reliably; the sizing stage takes it from here"
           },
           "approxDims": {
             "anyOf": [
@@ -158,50 +158,12 @@
         "type": "string"
       },
       "description": "Places not shown, e.g. 'closet not opened'"
-    },
-    "questions": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "kind": {
-            "type": "string",
-            "enum": [
-              "MEASURE",
-              "CONFIRM_COUNT",
-              "IS_MOVING",
-              "MORE_FOOTAGE"
-            ]
-          },
-          "itemIndex": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "detail": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "kind",
-          "itemIndex",
-          "detail"
-        ]
-      }
     }
   },
   "required": [
     "items",
     "fullness",
     "packedBoxesSeen",
-    "coverageGaps",
-    "questions"
+    "coverageGaps"
   ]
 }

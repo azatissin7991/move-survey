@@ -8,7 +8,6 @@
         "survey.started",
         "survey.processing_failed",
         "survey.ready_for_review",
-        "survey.customer_confirmed",
         "survey.approved"
       ]
     },

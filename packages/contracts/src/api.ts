@@ -75,7 +75,6 @@ export const WEBHOOK_EVENTS = [
   "survey.started",
   "survey.processing_failed",
   "survey.ready_for_review",
-  "survey.customer_confirmed",
   "survey.approved",
 ] as const;
 

@@ -74,7 +74,6 @@ model Survey {
   rooms       SurveyRoom[]
   media       Media[]
   detections  Detection[]
-  questions   Question[]
   corrections Correction[]
   outcome     Outcome?
   runs        PipelineRun[]
@@ -87,12 +86,11 @@ model SurveyRoom {
   id         String   @id @default(cuid())
   surveyId   String
   survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  roomType   String // catalog ROOM_TYPES
+  // Known in room-by-room mode; in a walk-through the AI works rooms out.
+  roomType   String? // catalog ROOM_TYPES
   label      String
   sortOrder  Int
-  status     String   @default("PENDING") // contracts ROOM_STATUSES
-  // Bumped on every new recording; stage results for an older one are dropped.
-  revision   Int      @default(0)
+  status     String   @default("UPLOADING") // contracts ROOM_STATUSES
   quality    Json?
   transcript String   @default("")
   notes      String   @default("")
@@ -106,7 +104,7 @@ model SurveyRoom {
   @@index([surveyId])
 }
 
-// One recording (or photo) of a room. Video arrives as numbered chunks that
+// One recording (or photo) of a segment. Video arrives as numbered chunks that
 // concatenate into one file: MediaRecorder output is a single stream.
 model Media {
   id          String   @id @default(cuid())
@@ -114,7 +112,6 @@ model Media {
   survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   roomId      String
   room        SurveyRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  revision    Int
   kind        String // VIDEO | PHOTO | AUDIO
   contentType String
   // Folder (prefix) holding chunk-00000, chunk-00001, ...
@@ -174,20 +171,6 @@ model Detection {
   @@index([surveyId])
 }
 
-model Question {
-  id          String    @id @default(cuid())
-  surveyId    String
-  survey      Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  detectionId String?
-  kind        String // MEASURE | CONFIRM_COUNT | IS_MOVING | MORE_FOOTAGE
-  params      Json      @default("{}")
-  answer      Json?
-  answeredAt  DateTime?
-  createdAt   DateTime  @default(now())
-
-  @@index([surveyId])
-}
-
 // Every human change to a detection: eval data and catalog feedback.
 model Correction {
   id          String    @id @default(cuid())
@@ -219,7 +202,6 @@ model PipelineRun {
   surveyId      String
   survey        Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   roomId        String?
-  roomRevision  Int?
   stage         String // contracts PIPELINE_STAGES
   status        String    @default("QUEUED") // QUEUED | RUNNING | DONE | FAILED | STALE
   attempt       Int       @default(1)

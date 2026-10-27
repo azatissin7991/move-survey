@@ -30,7 +30,7 @@ export const detectedItemSchema = z.object({
   fragile: z.boolean(),
   needsDisassembly: z.boolean(),
   notGoingHint: z.boolean().describe("Narration or notes suggest it is not moving"),
-  needsMeasurement: z.boolean().describe("Size decides the variant or price and couldn't be read reliably"),
+  needsMeasurement: z.boolean().describe("Size decides the variant or price and couldn't be read reliably; the sizing stage takes it from here"),
   approxDims: approxDimsSchema.nullable(),
   note: z.string().nullable(),
 });
@@ -41,14 +41,8 @@ export const roomAnalysisSchema = z.object({
   items: z.array(detectedItemSchema),
   fullness: z.enum(FULLNESS),
   packedBoxesSeen: z.record(z.string(), z.number().int().nonnegative()),
+  // Not asked of anyone: gaps widen the estimate's range instead.
   coverageGaps: z.array(z.string()).describe("Places not shown, e.g. 'closet not opened'"),
-  questions: z.array(
-    z.object({
-      kind: z.enum(["MEASURE", "CONFIRM_COUNT", "IS_MOVING", "MORE_FOOTAGE"]),
-      itemIndex: z.number().int().nonnegative().nullable(),
-      detail: z.string(),
-    }),
-  ),
 });
 export type RoomAnalysis = z.infer<typeof roomAnalysisSchema>;
 

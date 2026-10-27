@@ -1,55 +1,43 @@
 "use client";
 
-// In-page camera recorder for one room. MediaRecorder emits a chunk every
-// 2 seconds; each goes to the upload queue (IndexedDB first). The chunks
-// concatenate back into one file on the server. Falls back to a file picker
-// that splits a chosen video into the same chunks.
+// One recording screen for the whole survey. A walk-through is a single
+// recording; "Next room" just starts a new segment so rooms are easier to
+// tell apart. Room-by-room mode asks which room before each segment. Every
+// segment is a MediaRecorder emitting 2 s chunks into the upload queue.
 
 import { useEffect, useRef, useState } from "react";
+import type { RoomType } from "@move-survey/catalog";
+import type { CaptureMode } from "@move-survey/contracts";
 import type { Dict } from "@/lib/i18n";
 import { postJson, uploadQueue } from "./upload-queue";
 
 const TIMESLICE_MS = 2_000;
 const FILE_CHUNK_BYTES = 8 * 1024 * 1024;
-const MIN_SECONDS = 20;
-const MIME_CANDIDATES = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+const MIME_CANDIDATES = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"];
 
-function pickMime(): string | null {
-  if (typeof MediaRecorder === "undefined") return null;
-  return MIME_CANDIDATES.find((m) => MediaRecorder.isTypeSupported(m)) ?? null;
-}
+type Phase = "ready" | "picking" | "recording" | "paused" | "error";
+type Segment = { mediaId: string; index: number; bytes: number; startedAt: number };
 
-type Phase = "idle" | "recording" | "review" | "error";
+const pickMime = () => MIME_CANDIDATES.find((m) => MediaRecorder.isTypeSupported(m)) ?? null;
 
-export function Recorder({
-  token,
-  roomId,
-  roomLabel,
-  t,
-  onDone,
-}: {
-  token: string;
-  roomId: string;
-  roomLabel: string;
-  t: Dict;
-  onDone: (recorded: boolean) => void;
-}) {
+export function Recorder({ token, mode, t, onDone }: { token: string; mode: CaptureMode; t: Dict; onDone: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
-  const session = useRef({ mediaId: "", index: 0, bytes: 0, startedAt: 0, darkSamples: 0, samples: 0 });
-  const [phase, setPhase] = useState<Phase>("idle");
+  const segmentRef = useRef<Segment | null>(null);
+  const stoppedRef = useRef<(() => void) | null>(null);
+  const [phase, setPhase] = useState<Phase>("ready");
+  const [label, setLabel] = useState("");
   const [seconds, setSeconds] = useState(0);
-  const [warnings, setWarnings] = useState<string[]>([]);
-  const [message, setMessage] = useState("");
+  const [nudge, setNudge] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  // Camera preview as soon as the screen opens.
   useEffect(() => {
     let cancelled = false;
     navigator.mediaDevices
       ?.getUserMedia({
         video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: true,
+        audio: true, // narration: "this stays", "closet is full of boxes"
       })
       .then((stream) => {
         if (cancelled) return stream.getTracks().forEach((tr) => tr.stop());
@@ -63,172 +51,192 @@ export function Recorder({
     };
   }, []);
 
-  // Timer and a rough brightness check, once a second while recording.
+  // Once a second while recording: timer, and nudges for darkness and fast panning.
   useEffect(() => {
     if (phase !== "recording") return;
-    const canvas = document.createElement("canvas");
-    canvas.width = 32;
-    canvas.height = 18;
+    const canvas = Object.assign(document.createElement("canvas"), { width: 32, height: 18 });
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    let previous: Float32Array | null = null;
+    let dark = 0;
+    let fast = 0;
     const id = setInterval(() => {
-      const s = session.current;
-      setSeconds(Math.round((Date.now() - s.startedAt) / 1000));
-      if (ctx && videoRef.current) {
-        ctx.drawImage(videoRef.current, 0, 0, 32, 18);
-        const px = ctx.getImageData(0, 0, 32, 18).data;
-        let sum = 0;
-        for (let i = 0; i < px.length; i += 4) sum += 0.2126 * px[i]! + 0.7152 * px[i + 1]! + 0.0722 * px[i + 2]!;
-        s.samples++;
-        if (sum / (px.length / 4) < 45) s.darkSamples++;
-      }
+      setSeconds((s) => s + 1);
+      if (!ctx || !videoRef.current) return;
+      ctx.drawImage(videoRef.current, 0, 0, 32, 18);
+      const px = ctx.getImageData(0, 0, 32, 18).data;
+      const luma = new Float32Array(px.length / 4);
+      for (let i = 0; i < luma.length; i++) luma[i] = 0.2126 * px[i * 4]! + 0.7152 * px[i * 4 + 1]! + 0.0722 * px[i * 4 + 2]!;
+      const mean = luma.reduce((a, b) => a + b, 0) / luma.length;
+      const change = previous ? luma.reduce((a, v, i) => a + Math.abs(v - previous![i]!), 0) / luma.length : 0;
+      previous = luma;
+      dark = mean < 45 ? dark + 1 : 0;
+      fast = change > 40 ? fast + 1 : 0;
+      setNudge(dark >= 3 ? t.tooDark : fast >= 2 ? t.tooFast : "");
     }, 1_000);
     return () => clearInterval(id);
-  }, [phase]);
+  }, [phase, t.tooDark, t.tooFast]);
 
-  // iOS kills the camera when the page is hidden; close the recording cleanly.
+  // iOS stops the camera when the page is hidden: close the segment cleanly.
   useEffect(() => {
     const onHide = () => {
       if (document.visibilityState === "hidden" && recorderRef.current?.state === "recording") {
-        recorderRef.current.stop();
-        setMessage(t.interrupted);
+        void stopSegment().then(() => setPhase("paused"));
       }
     };
     document.addEventListener("visibilitychange", onHide);
     return () => document.removeEventListener("visibilitychange", onHide);
-  }, [t.interrupted]);
+  });
 
-  async function start() {
+  async function startSegment(roomType?: RoomType) {
     const stream = streamRef.current;
     const mime = pickMime();
     if (!stream || !mime) return setPhase("error");
-    setMessage("");
-    setWarnings([]);
+    setBusy(true);
     try {
-      const { mediaId } = await postJson<{ mediaId: string }>(`/api/s/${token}/rooms/${roomId}/media`, {
+      const seg = await postJson<{ mediaId: string; label: string }>(`/api/s/${token}/segments`, {
         kind: "VIDEO",
         contentType: mime.split(";")[0],
+        roomType,
       });
       const queue = uploadQueue();
-      await queue.beginMedia(token, mediaId);
-      session.current = { mediaId, index: 0, bytes: 0, startedAt: Date.now(), darkSamples: 0, samples: 0 };
-      const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_500_000 });
-      rec.ondataavailable = (e) => {
-        if (e.data.size === 0) return;
-        const s = session.current;
+      await queue.beginMedia(token, seg.mediaId);
+      segmentRef.current = { mediaId: seg.mediaId, index: 0, bytes: 0, startedAt: Date.now() };
+      const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_500_000 });
+      recorder.ondataavailable = (e) => {
+        const s = segmentRef.current;
+        if (!s || e.data.size === 0) return;
         s.bytes += e.data.size;
         void queue.addChunk(token, s.mediaId, s.index++, e.data);
       };
-      rec.onstop = () => {
-        const s = session.current;
-        const durationMs = Date.now() - s.startedAt;
-        // onstop fires after the final dataavailable, so the count is complete.
-        void queue.endMedia(s.mediaId, s.index, durationMs, s.bytes);
-        const w: string[] = [];
-        if (durationMs < MIN_SECONDS * 1000) w.push(t.tooShort);
-        if (s.samples > 0 && s.darkSamples / s.samples > 0.5) w.push(t.tooDark);
-        setWarnings(w);
-        setPhase("review");
+      // onstop fires after the last dataavailable, so the chunk count is final.
+      recorder.onstop = () => {
+        const s = segmentRef.current;
+        if (s) void queue.endMedia(s.mediaId, s.index, Date.now() - s.startedAt, s.bytes);
+        segmentRef.current = null;
+        stoppedRef.current?.();
       };
-      recorderRef.current = rec;
-      rec.start(TIMESLICE_MS);
-      setSeconds(0);
+      recorderRef.current = recorder;
+      recorder.start(TIMESLICE_MS);
+      setLabel(seg.label);
       setPhase("recording");
     } catch {
-      setMessage(t.error);
+      setNudge(t.error);
+    } finally {
+      setBusy(false);
     }
   }
 
-  function stop() {
-    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+  function stopSegment(): Promise<void> {
+    const recorder = recorderRef.current;
+    if (!recorder || recorder.state !== "recording") return Promise.resolve();
+    return new Promise((resolve) => {
+      stoppedRef.current = resolve;
+      recorder.stop();
+    });
   }
 
-  async function uploadFile(file: File) {
+  async function next() {
+    await stopSegment();
+    if (mode === "rooms") setPhase("picking");
+    else await startSegment();
+  }
+
+  async function done() {
+    setBusy(true);
+    await stopSegment();
+    onDone();
+  }
+
+  async function uploadFiles(files: FileList) {
+    setBusy(true);
     try {
-      const kind = file.type.startsWith("image/") ? "PHOTO" : "VIDEO";
-      const { mediaId } = await postJson<{ mediaId: string }>(`/api/s/${token}/rooms/${roomId}/media`, {
-        kind,
-        contentType: file.type || "video/mp4",
-      });
       const queue = uploadQueue();
-      await queue.beginMedia(token, mediaId);
-      let index = 0;
-      for (let offset = 0; offset < file.size; offset += FILE_CHUNK_BYTES) {
-        await queue.addChunk(token, mediaId, index++, file.slice(offset, offset + FILE_CHUNK_BYTES, file.type));
+      for (const file of Array.from(files)) {
+        const seg = await postJson<{ mediaId: string }>(`/api/s/${token}/segments`, {
+          kind: file.type.startsWith("image/") ? "PHOTO" : "VIDEO",
+          contentType: file.type || "video/mp4",
+        });
+        await queue.beginMedia(token, seg.mediaId);
+        let index = 0;
+        for (let offset = 0; offset < file.size; offset += FILE_CHUNK_BYTES) {
+          await queue.addChunk(token, seg.mediaId, index++, file.slice(offset, offset + FILE_CHUNK_BYTES, file.type));
+        }
+        await queue.endMedia(seg.mediaId, index, 0, file.size);
       }
-      await queue.endMedia(mediaId, index, 0, file.size);
-      onDone(true);
+      onDone();
     } catch {
-      setMessage(t.error);
+      setNudge(t.error);
+      setBusy(false);
     }
   }
 
-  const mm = String(Math.floor(seconds / 60)).padStart(1, "0");
-  const ss = String(seconds % 60).padStart(2, "0");
+  // Rooms offered in room-by-room mode (storage units are their own surveys).
+  const pickable = (Object.keys(t.rooms) as RoomType[]).filter((r) => r !== "storage" && r !== "other");
+  const begin = () => (mode === "rooms" ? setPhase("picking") : startSegment());
+  const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const pill = "rounded-full py-4 text-base font-bold disabled:opacity-50";
 
   return (
     <div className="fixed inset-0 z-20 flex flex-col bg-black text-white">
       <div className="flex items-center justify-between px-4 py-3 text-sm">
-        <button type="button" onClick={() => onDone(phase === "review")} className="font-semibold text-white/80" disabled={phase === "recording"}>
-          ← {t.back}
-        </button>
-        <span className="font-bold">{roomLabel}</span>
-        <span className={phase === "recording" ? "font-mono text-red-400" : "font-mono text-white/50"}>
-          {mm}:{ss}
-        </span>
+        <span className="font-semibold">{phase === "recording" ? label : t.title}</span>
+        {phase === "recording" && <span className="font-mono text-red-400">● {clock}</span>}
       </div>
 
       <div className="relative flex-1 overflow-hidden">
         <video ref={videoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
-        {phase === "idle" && (
-          <ul className="absolute inset-x-4 bottom-4 space-y-1 rounded-xl bg-black/60 p-3 text-xs">
-            {t.tips.map((tip) => (
-              <li key={tip}>• {tip}</li>
-            ))}
+        {phase === "ready" && (
+          <ul className="absolute inset-x-4 bottom-4 space-y-1 rounded-xl bg-black/60 p-3 text-sm">
+            {t.tips.map((tip) => <li key={tip}>• {tip}</li>)}
           </ul>
         )}
-        {phase === "error" && (
-          <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm">{t.cameraError}</div>
+        {phase === "picking" && (
+          <div className="absolute inset-0 flex flex-col justify-end bg-black/70 p-4">
+            <p className="mb-3 text-center font-semibold">{t.whichRoom}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {pickable.map((r) => (
+                <button key={r} type="button" disabled={busy} onClick={() => startSegment(r)} className="rounded-xl bg-white/15 py-3 text-sm font-semibold">
+                  {t.rooms[r]}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
+        {phase === "paused" && <p className="absolute inset-x-4 top-4 rounded-xl bg-black/70 p-3 text-center text-sm">{t.paused}</p>}
+        {phase === "error" && <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm">{t.cameraError}</p>}
+        {nudge && <p className="absolute inset-x-4 top-4 rounded-xl bg-amber-400 p-3 text-center text-sm font-bold text-black">{nudge}</p>}
       </div>
 
       <div className="space-y-3 px-4 py-4">
-        {message && <p className="text-center text-xs text-amber-300">{message}</p>}
-        {phase === "review" && warnings.map((w) => (
-          <p key={w} className="text-center text-xs text-amber-300">{w}</p>
-        ))}
-
-        {phase === "idle" && (
-          <button type="button" onClick={start} className="w-full rounded-full bg-red-600 py-4 text-base font-bold">
-            {t.startRecording}
+        {(phase === "ready" || phase === "paused") && (
+          <button type="button" onClick={begin} disabled={busy} className={`${pill} w-full bg-red-600`}>
+            {phase === "paused" ? t.continueRecording : t.record}
           </button>
         )}
         {phase === "recording" && (
-          <button type="button" onClick={stop} className="w-full rounded-full bg-white py-4 text-base font-bold text-black">
-            ■ {t.stopRecording}
-          </button>
-        )}
-        {phase === "review" && (
           <div className="grid grid-cols-2 gap-3">
-            <button type="button" onClick={() => setPhase("idle")} className="rounded-full border border-white/40 py-3 font-semibold">
-              {t.rerecord}
+            <button type="button" onClick={next} disabled={busy} className={`${pill} border border-white/50`}>
+              {t.nextRoom}
             </button>
-            <button type="button" onClick={() => onDone(true)} className="rounded-full bg-white py-3 font-bold text-black">
-              {t.keep}
+            <button type="button" onClick={done} disabled={busy} className={`${pill} bg-white text-black`}>
+              {t.done}
             </button>
           </div>
         )}
-
+        {phase === "paused" && (
+          <button type="button" onClick={done} disabled={busy} className={`${pill} w-full bg-white text-black`}>
+            {t.done}
+          </button>
+        )}
         {phase !== "recording" && (
           <label className="block cursor-pointer text-center text-xs text-white/70 underline">
             {t.uploadInstead}
             <input
               type="file"
               accept="video/*,image/*"
+              multiple
               className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void uploadFile(file);
-              }}
+              onChange={(e) => e.target.files?.length && void uploadFiles(e.target.files)}
             />
           </label>
         )}

@@ -8,36 +8,46 @@ import {
   verifySignature,
   verifySignedValue,
 } from "./crypto";
-import { acceptsStageResult, assertTransition, canTransition, readyToReconcile, roomsMissingFootage } from "./state";
+import { canRecord, canTransition, canUpload, readyToReconcile } from "./state";
+import { captureMode } from "./customer";
 import { backoffMinutes } from "./webhooks";
 import { actualCuFt, snapshotFor } from "./inventory";
 import { chunkKey, isValidKey, mediaPrefix } from "./storage";
 
 describe("state", () => {
-  it("allows the main path and re-opening for footage", () => {
+  it("allows the main path, auto-approve and reopening", () => {
     expect(canTransition("CREATED", "IN_PROGRESS")).toBe(true);
     expect(canTransition("IN_PROGRESS", "PROCESSING")).toBe(true);
-    expect(canTransition("READY_FOR_REVIEW", "APPROVED")).toBe(true);
-    expect(canTransition("APPROVED", "IN_PROGRESS")).toBe(true);
+    expect(canTransition("PROCESSING", "APPROVED")).toBe(true);
+    expect(canTransition("APPROVED", "READY_FOR_REVIEW")).toBe(true);
   });
 
-  it("refuses skipping review or leaving cancelled", () => {
-    expect(canTransition("PROCESSING", "APPROVED")).toBe(false);
+  it("refuses leaving cancelled or approving unfinished recordings", () => {
     expect(canTransition("CANCELLED", "IN_PROGRESS")).toBe(false);
-    expect(() => assertTransition("CREATED", "APPROVED")).toThrow(/CREATED to APPROVED/);
+    expect(canTransition("IN_PROGRESS", "APPROVED")).toBe(false);
   });
 
-  it("drops stage results from an older recording", () => {
-    expect(acceptsStageResult(3, 3)).toBe(true);
-    expect(acceptsStageResult(3, 2)).toBe(false);
+  it("takes recordings until Done, uploads until processing ends", () => {
+    expect(canRecord("IN_PROGRESS")).toBe(true);
+    expect(canRecord("PROCESSING")).toBe(false);
+    expect(canUpload("PROCESSING")).toBe(true);
+    expect(canUpload("APPROVED")).toBe(false);
   });
 
-  it("reconciles once rooms settle and one has footage", () => {
-    expect(readyToReconcile([{ status: "DONE" }, { status: "SKIPPED" }])).toBe(true);
+  it("reconciles once segments settle and one has footage", () => {
+    expect(readyToReconcile([{ status: "DONE" }, { status: "FAILED" }])).toBe(true);
     expect(readyToReconcile([{ status: "DONE" }, { status: "PROCESSING" }])).toBe(false);
-    expect(readyToReconcile([{ status: "FAILED" }, { status: "SKIPPED" }])).toBe(false);
+    expect(readyToReconcile([{ status: "FAILED" }])).toBe(false);
     expect(readyToReconcile([])).toBe(false);
-    expect(roomsMissingFootage([{ status: "PENDING" }, { status: "NEEDS_RETAKE" }, { status: "DONE" }])).toBe(2);
+  });
+});
+
+describe("tenant settings", () => {
+  it("defaults to a walk-through and ignores junk", () => {
+    expect(captureMode({})).toBe("walkthrough");
+    expect(captureMode(null)).toBe("walkthrough");
+    expect(captureMode({ captureMode: "rooms" })).toBe("rooms");
+    expect(captureMode({ captureMode: "nonsense" })).toBe("walkthrough");
   });
 });
 
@@ -70,8 +80,8 @@ describe("crypto", () => {
 
 describe("storage keys", () => {
   it("lays chunks out under the survey and validates them", () => {
-    const key = chunkKey(mediaPrefix("s1", "r1", 2, "m1"), 7);
-    expect(key).toBe("surveys/s1/rooms/r1/r2/m1/chunk-00007");
+    const key = chunkKey(mediaPrefix("s1", "r1", "m1"), 7);
+    expect(key).toBe("surveys/s1/rooms/r1/m1/chunk-00007");
     expect(isValidKey(key)).toBe(true);
     expect(isValidKey("surveys/../etc/passwd")).toBe(false);
   });

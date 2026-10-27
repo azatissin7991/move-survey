@@ -55,11 +55,10 @@ CREATE TABLE "Survey" (
 CREATE TABLE "SurveyRoom" (
     "id" TEXT NOT NULL,
     "surveyId" TEXT NOT NULL,
-    "roomType" TEXT NOT NULL,
+    "roomType" TEXT,
     "label" TEXT NOT NULL,
     "sortOrder" INTEGER NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'PENDING',
-    "revision" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'UPLOADING',
     "quality" JSONB,
     "transcript" TEXT NOT NULL DEFAULT '',
     "notes" TEXT NOT NULL DEFAULT '',
@@ -74,7 +73,6 @@ CREATE TABLE "Media" (
     "id" TEXT NOT NULL,
     "surveyId" TEXT NOT NULL,
     "roomId" TEXT NOT NULL,
-    "revision" INTEGER NOT NULL,
     "kind" TEXT NOT NULL,
     "contentType" TEXT NOT NULL,
     "storagePrefix" TEXT NOT NULL,
@@ -126,20 +124,6 @@ CREATE TABLE "Detection" (
 );
 
 -- CreateTable
-CREATE TABLE "Question" (
-    "id" TEXT NOT NULL,
-    "surveyId" TEXT NOT NULL,
-    "detectionId" TEXT,
-    "kind" TEXT NOT NULL,
-    "params" JSONB NOT NULL DEFAULT '{}',
-    "answer" JSONB,
-    "answeredAt" TIMESTAMP(3),
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Question_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Correction" (
     "id" TEXT NOT NULL,
     "surveyId" TEXT NOT NULL,
@@ -169,7 +153,6 @@ CREATE TABLE "PipelineRun" (
     "id" TEXT NOT NULL,
     "surveyId" TEXT NOT NULL,
     "roomId" TEXT,
-    "roomRevision" INTEGER,
     "stage" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'QUEUED',
     "attempt" INTEGER NOT NULL DEFAULT 1,
@@ -232,9 +215,6 @@ CREATE INDEX "Frame_roomId_idx" ON "Frame"("roomId");
 CREATE INDEX "Detection_surveyId_idx" ON "Detection"("surveyId");
 
 -- CreateIndex
-CREATE INDEX "Question_surveyId_idx" ON "Question"("surveyId");
-
--- CreateIndex
 CREATE INDEX "Correction_surveyId_idx" ON "Correction"("surveyId");
 
 -- CreateIndex
@@ -275,9 +255,6 @@ ALTER TABLE "Detection" ADD CONSTRAINT "Detection_surveyId_fkey" FOREIGN KEY ("s
 
 -- AddForeignKey
 ALTER TABLE "Detection" ADD CONSTRAINT "Detection_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "SurveyRoom"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Question" ADD CONSTRAINT "Question_surveyId_fkey" FOREIGN KEY ("surveyId") REFERENCES "Survey"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Correction" ADD CONSTRAINT "Correction_surveyId_fkey" FOREIGN KEY ("surveyId") REFERENCES "Survey"("id") ON DELETE CASCADE ON UPDATE CASCADE;

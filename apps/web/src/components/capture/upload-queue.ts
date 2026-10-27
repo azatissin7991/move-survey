@@ -143,7 +143,6 @@ class UploadQueue {
         if (status !== 404 && status !== 409) throw e;
       }
       await tx("media", "readwrite", (s) => s.delete(m.mediaId));
-      window.dispatchEvent(new CustomEvent("survey:media-complete", { detail: m.mediaId }));
     }
   }
 }

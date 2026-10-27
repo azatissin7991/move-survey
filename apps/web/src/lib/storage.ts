@@ -4,7 +4,7 @@
 // presigned URL.
 //
 // Keys are laid out per survey so retention can delete a whole survey prefix:
-//   surveys/<surveyId>/rooms/<roomId>/r<revision>/<mediaId>/chunk-00000
+//   surveys/<surveyId>/rooms/<roomId>/<mediaId>/chunk-00000
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -19,15 +19,15 @@ export interface Storage {
   presignGet(key: string, ttlSeconds: number): Promise<string>;
 }
 
-export function mediaPrefix(surveyId: string, roomId: string, revision: number, mediaId: string): string {
-  return `surveys/${surveyId}/rooms/${roomId}/r${revision}/${mediaId}`;
+export function mediaPrefix(surveyId: string, roomId: string, mediaId: string): string {
+  return `surveys/${surveyId}/rooms/${roomId}/${mediaId}`;
 }
 
 export function chunkKey(prefix: string, index: number): string {
   return `${prefix}/chunk-${String(index).padStart(5, "0")}`;
 }
 
-const KEY_PATTERN = /^surveys\/[A-Za-z0-9]+\/rooms\/[A-Za-z0-9]+\/r\d+\/[A-Za-z0-9]+\/chunk-\d{5}$/;
+const KEY_PATTERN = /^surveys\/[A-Za-z0-9]+\/rooms\/[A-Za-z0-9]+\/[A-Za-z0-9]+\/chunk-\d{5}$/;
 export const isValidKey = (key: string) => KEY_PATTERN.test(key);
 
 // ---------- local (dev) ----------

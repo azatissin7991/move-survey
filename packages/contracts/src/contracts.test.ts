@@ -30,7 +30,6 @@ describe("contracts", () => {
       fullness: "average",
       packedBoxesSeen: {},
       coverageGaps: [],
-      questions: [],
     });
     expect(ok.success).toBe(true);
   });
@@ -41,7 +40,6 @@ describe("contracts", () => {
       fullness: "average",
       packedBoxesSeen: {},
       coverageGaps: [],
-      questions: [],
     });
     expect(bad.success).toBe(false);
   });

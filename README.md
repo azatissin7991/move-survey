@@ -4,8 +4,13 @@ AI video inventory survey for moving companies. The customer records each
 room from a link, and the service produces an inventory (items, cu ft, weight,
 boxes, special handling) that an estimator reviews and pushes into the CRM.
 
-Status: **phase 1 in progress.** Customers can record and upload; the AI
-pipeline, the review screen and the CRM integration come next.
+Status: **phase 1 in progress.** Recording and upload work; the AI pipeline,
+the review screen and the CRM integration come next.
+
+Design rule: near zero effort for whoever records (customer, helper or
+foreman) and whoever reviews. Open the link, tap Start, walk through, tap
+Done. Nobody measures or answers questions; where the AI is unsure the
+estimate's range widens instead.
 
 | Folder | What | State |
 | --- | --- | --- |
@@ -39,16 +44,20 @@ curl -X POST localhost:3100/api/v1/surveys \
 Open the returned `customerUrl` on a phone (the camera needs HTTPS or
 localhost; use a tunnel such as `cloudflared` to test on a real device).
 
-## How uploads work
+## How capture works
 
-The recorder emits a chunk every 2 seconds. Each chunk is saved to the
-phone's IndexedDB first, then uploaded to its own object
-(`surveys/<id>/rooms/<room>/r<revision>/<media>/chunk-NNNNN`) through a
-presigned URL: R2 in production, a signed local route in dev. Chunks
-concatenate back into one file in the worker. A page reload, lost signal or
-iOS suspending the tab doesn't lose footage; the queue resumes when the page
-is visible again. Recording a room again bumps its revision, and pipeline
-results for an older revision are dropped.
+By default the whole home is one walk-through; "Next room" just starts a new
+segment so rooms are easier to tell apart, and the AI works out which room is
+which. A company can switch to room-by-room mode (`captureMode: "rooms"` in
+the tenant's `settings`), which asks "Which room?" before each segment.
+
+Each segment is a MediaRecorder emitting a chunk every 2 seconds. Chunks go
+to the phone's IndexedDB first, then upload to their own objects
+(`surveys/<id>/rooms/<segment>/<media>/chunk-NNNNN`) through presigned URLs:
+R2 in production, a signed local route in dev. They concatenate back into one
+file in the worker. A reload, lost signal or iOS suspending the tab doesn't
+lose footage; uploads resume when the page is visible again, including after
+Done.
 
 ```bash
 npm test          # all workspaces

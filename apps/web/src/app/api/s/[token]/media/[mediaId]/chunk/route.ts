@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { jsonError, parseBody } from "@/lib/api-auth";
 import { db } from "@/lib/db";
-import { chunkRequestSchema, recordableSurvey } from "@/lib/customer";
+import { chunkRequestSchema, uploadable } from "@/lib/customer";
 import { chunkKey, getStorage } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export async function POST(
   { params }: { params: Promise<{ token: string; mediaId: string }> },
 ) {
   const { token, mediaId } = await params;
-  const found = await recordableSurvey(token);
+  const found = await uploadable(token);
   if ("response" in found) return found.response;
   const media = await db.media.findFirst({ where: { id: mediaId, surveyId: found.survey.id } });
   if (!media) return jsonError(404, "Recording not found");
