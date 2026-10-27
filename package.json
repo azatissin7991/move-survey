@@ -1,0 +1,11 @@
+{
+  "name": "move-survey",
+  "private": true,
+  "workspaces": [
+    "catalog"
+  ],
+  "scripts": {
+    "catalog:build": "npm run build -w catalog",
+    "test": "npm test --workspaces --if-present"
+  }
+}

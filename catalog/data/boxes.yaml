@@ -1,0 +1,94 @@
+# Expected packed boxes for a MEDIUM room of each type, by how full it looks.
+# Stage E scales by room size and subtracts boxes already counted on camera.
+# Draft values; the calibration loop replaces them with fitted numbers.
+sources:
+  - { field: all, ref: est-draft }
+
+sizeMultiplier: { small: 0.7, medium: 1.0, large: 1.4 }
+
+rooms:
+  living_room:
+    sparse:  { box-small-1.5: 2, box-medium-3.0: 3, box-large-4.5: 2 }
+    average: { box-small-1.5: 5, box-medium-3.0: 8, box-large-4.5: 4 }
+    full:    { box-small-1.5: 10, box-medium-3.0: 14, box-large-4.5: 6 }
+    packed:  { box-small-1.5: 15, box-medium-3.0: 20, box-large-4.5: 8 }
+  family_room:
+    sparse:  { box-small-1.5: 2, box-medium-3.0: 3, box-large-4.5: 2 }
+    average: { box-small-1.5: 4, box-medium-3.0: 7, box-large-4.5: 4 }
+    full:    { box-small-1.5: 8, box-medium-3.0: 12, box-large-4.5: 6 }
+    packed:  { box-small-1.5: 12, box-medium-3.0: 18, box-large-4.5: 8 }
+  dining_room:
+    sparse:  { box-medium-3.0: 2, box-dishpack: 1 }
+    average: { box-small-1.5: 2, box-medium-3.0: 4, box-dishpack: 2 }
+    full:    { box-small-1.5: 3, box-medium-3.0: 6, box-dishpack: 4 }
+    packed:  { box-small-1.5: 5, box-medium-3.0: 8, box-dishpack: 6 }
+  kitchen:
+    sparse:  { box-small-1.5: 3, box-medium-3.0: 5, box-dishpack: 2 }
+    average: { box-small-1.5: 6, box-medium-3.0: 10, box-large-4.5: 3, box-dishpack: 4 }
+    full:    { box-small-1.5: 8, box-medium-3.0: 15, box-large-4.5: 5, box-dishpack: 6 }
+    packed:  { box-small-1.5: 12, box-medium-3.0: 20, box-large-4.5: 6, box-dishpack: 8 }
+  bedroom:
+    sparse:  { box-small-1.5: 2, box-medium-3.0: 4, box-large-4.5: 3, box-wardrobe: 1 }
+    average: { box-small-1.5: 4, box-medium-3.0: 8, box-large-4.5: 5, box-wardrobe: 2 }
+    full:    { box-small-1.5: 6, box-medium-3.0: 12, box-large-4.5: 8, box-wardrobe: 4 }
+    packed:  { box-small-1.5: 8, box-medium-3.0: 16, box-large-4.5: 10, box-wardrobe: 6 }
+  kids_room:
+    sparse:  { box-medium-3.0: 3, box-large-4.5: 3 }
+    average: { box-small-1.5: 2, box-medium-3.0: 6, box-large-4.5: 5, box-wardrobe: 1 }
+    full:    { box-small-1.5: 3, box-medium-3.0: 10, box-large-4.5: 8, box-wardrobe: 2 }
+    packed:  { box-small-1.5: 4, box-medium-3.0: 14, box-large-4.5: 10, box-wardrobe: 3 }
+  nursery:
+    sparse:  { box-medium-3.0: 2, box-large-4.5: 2 }
+    average: { box-medium-3.0: 4, box-large-4.5: 4 }
+    full:    { box-medium-3.0: 6, box-large-4.5: 6, box-wardrobe: 1 }
+    packed:  { box-medium-3.0: 8, box-large-4.5: 8, box-wardrobe: 2 }
+  office:
+    sparse:  { box-small-1.5: 3, box-medium-3.0: 3 }
+    average: { box-small-1.5: 8, box-medium-3.0: 6, box-large-4.5: 2 }
+    full:    { box-small-1.5: 14, box-medium-3.0: 10, box-large-4.5: 3 }
+    packed:  { box-small-1.5: 20, box-medium-3.0: 14, box-large-4.5: 4 }
+  bathroom:
+    sparse:  { box-small-1.5: 1 }
+    average: { box-small-1.5: 1, box-medium-3.0: 1 }
+    full:    { box-small-1.5: 2, box-medium-3.0: 2 }
+    packed:  { box-small-1.5: 3, box-medium-3.0: 3 }
+  laundry:
+    sparse:  { box-medium-3.0: 1 }
+    average: { box-medium-3.0: 2 }
+    full:    { box-medium-3.0: 3, box-large-4.5: 1 }
+    packed:  { box-medium-3.0: 4, box-large-4.5: 2 }
+  hallway:
+    sparse:  { box-large-4.5: 1 }
+    average: { box-large-4.5: 2 }
+    full:    { box-medium-3.0: 1, box-large-4.5: 3 }
+    packed:  { box-medium-3.0: 2, box-large-4.5: 4 }
+  garage:
+    sparse:  { box-small-1.5: 2, box-medium-3.0: 4, box-large-4.5: 2 }
+    average: { box-small-1.5: 5, box-medium-3.0: 10, box-large-4.5: 4 }
+    full:    { box-small-1.5: 10, box-medium-3.0: 18, box-large-4.5: 6 }
+    packed:  { box-small-1.5: 15, box-medium-3.0: 28, box-large-4.5: 10 }
+  basement:
+    sparse:  { box-small-1.5: 2, box-medium-3.0: 4, box-large-4.5: 2 }
+    average: { box-small-1.5: 4, box-medium-3.0: 10, box-large-4.5: 4 }
+    full:    { box-small-1.5: 8, box-medium-3.0: 16, box-large-4.5: 6 }
+    packed:  { box-small-1.5: 12, box-medium-3.0: 24, box-large-4.5: 10 }
+  attic:
+    sparse:  { box-medium-3.0: 3, box-large-4.5: 2 }
+    average: { box-medium-3.0: 8, box-large-4.5: 4 }
+    full:    { box-medium-3.0: 14, box-large-4.5: 6 }
+    packed:  { box-medium-3.0: 20, box-large-4.5: 10 }
+  patio:
+    sparse:  { box-medium-3.0: 1 }
+    average: { box-medium-3.0: 2 }
+    full:    { box-medium-3.0: 3 }
+    packed:  { box-medium-3.0: 5 }
+  storage:
+    sparse:  { box-medium-3.0: 5 }
+    average: { box-small-1.5: 4, box-medium-3.0: 12, box-large-4.5: 4 }
+    full:    { box-small-1.5: 8, box-medium-3.0: 20, box-large-4.5: 6 }
+    packed:  { box-small-1.5: 12, box-medium-3.0: 30, box-large-4.5: 10 }
+  other:
+    sparse:  { box-medium-3.0: 2 }
+    average: { box-medium-3.0: 4 }
+    full:    { box-medium-3.0: 6, box-large-4.5: 2 }
+    packed:  { box-medium-3.0: 8, box-large-4.5: 4 }

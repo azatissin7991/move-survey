@@ -1,0 +1,304 @@
+# Beds and bedroom storage. All values are drafts (est-draft) until a reviewer
+# adds a citation and sets review: signed_off.
+defaultSources:
+  - { field: all, ref: est-draft }
+
+items:
+  # ---- Mattresses (size by width) ----
+  - id: mattress-king
+    category: beds
+    rooms: [bedroom]
+    name: { en: "Mattress, King / Cal King", ru: "Матрас King / Cal King" }
+    aliases: { en: [king mattress, california king mattress], ru: [матрас кинг] }
+    cues: "Widest mattress, about 72–76 in wide; Cal King is narrower and longer."
+    dims: { l: [79, 84], w: [72, 76], h: [10, 14] }
+    shape: soft
+    cuFt: 40
+    weightLbs: 120
+    weightNote: "Spring/foam mattresses are far lighter than 7 lb/cu ft."
+    sizeGroup: mattress
+    sizeRule: { dim: w, min: 68 }
+  - id: mattress-queen
+    category: beds
+    rooms: [bedroom]
+    name: { en: "Mattress, Queen", ru: "Матрас Queen" }
+    aliases: { en: [queen mattress], ru: [матрас квин] }
+    cues: "About 60 in wide, 80 in long."
+    dims: { l: [79, 80], w: [59, 61], h: [10, 14] }
+    shape: soft
+    cuFt: 32
+    weightLbs: 100
+    weightNote: "Spring/foam mattresses are far lighter than 7 lb/cu ft."
+    sizeGroup: mattress
+    sizeRule: { dim: w, min: 58, max: 68 }
+  - id: mattress-full
+    category: beds
+    rooms: [bedroom, kids_room]
+    name: { en: "Mattress, Full", ru: "Матрас Full (полуторный)" }
+    aliases: { en: [full mattress, double mattress], ru: [полуторный матрас] }
+    cues: "About 54 in wide, 75 in long."
+    dims: { l: [74, 76], w: [53, 55], h: [9, 13] }
+    shape: soft
+    cuFt: 25
+    weightLbs: 80
+    weightNote: "Spring/foam mattresses are far lighter than 7 lb/cu ft."
+    sizeGroup: mattress
+    sizeRule: { dim: w, min: 45, max: 58 }
+  - id: mattress-twin
+    category: beds
+    rooms: [bedroom, kids_room]
+    name: { en: "Mattress, Twin / Twin XL", ru: "Матрас Twin (односпальный)" }
+    aliases: { en: [twin mattress, single mattress], ru: [односпальный матрас] }
+    cues: "About 38–39 in wide."
+    dims: { l: [74, 80], w: [38, 39], h: [8, 12] }
+    shape: soft
+    cuFt: 16
+    weightLbs: 55
+    weightNote: "Spring/foam mattresses are far lighter than 7 lb/cu ft."
+    sizeGroup: mattress
+    sizeRule: { dim: w, max: 45 }
+
+  # ---- Box springs / foundations ----
+  - id: box-spring-king
+    category: beds
+    rooms: [bedroom]
+    name: { en: "Box spring, King (pair)", ru: "Пружинное основание King (2 части)" }
+    aliases: { en: [king foundation, split king box spring], ru: [основание кинг] }
+    cues: "Usually two twin-XL halves under a king mattress; count the pair once."
+    dims: { l: [79, 80], w: [76, 76], h: [5, 9] }
+    shape: boxy
+    cuFt: 30
+    weightLbs: 80
+    weightNote: "Wood frame and fabric; light for its volume."
+    sizeGroup: box_spring
+    sizeRule: { dim: w, min: 68 }
+  - id: box-spring-queen
+    category: beds
+    rooms: [bedroom]
+    name: { en: "Box spring, Queen", ru: "Пружинное основание Queen" }
+    aliases: { en: [queen foundation], ru: [основание квин] }
+    dims: { l: [79, 80], w: [59, 61], h: [5, 9] }
+    shape: boxy
+    cuFt: 23
+    weightLbs: 60
+    weightNote: "Wood frame and fabric; light for its volume."
+    sizeGroup: box_spring
+    sizeRule: { dim: w, min: 58, max: 68 }
+  - id: box-spring-full
+    category: beds
+    rooms: [bedroom, kids_room]
+    name: { en: "Box spring, Full", ru: "Пружинное основание Full" }
+    dims: { l: [74, 76], w: [53, 55], h: [5, 9] }
+    shape: boxy
+    cuFt: 19
+    weightLbs: 50
+    weightNote: "Wood frame and fabric; light for its volume."
+    sizeGroup: box_spring
+    sizeRule: { dim: w, min: 45, max: 58 }
+  - id: box-spring-twin
+    category: beds
+    rooms: [bedroom, kids_room]
+    name: { en: "Box spring, Twin", ru: "Пружинное основание Twin" }
+    dims: { l: [74, 80], w: [38, 39], h: [5, 9] }
+    shape: boxy
+    cuFt: 13
+    weightLbs: 35
+    weightNote: "Wood frame and fabric; light for its volume."
+    sizeGroup: box_spring
+    sizeRule: { dim: w, max: 45 }
+
+  # ---- Frames ----
+  - id: bed-frame-metal
+    category: beds
+    rooms: [bedroom, kids_room]
+    name: { en: "Bed frame, metal", ru: "Металлический каркас кровати" }
+    aliases: { en: [metal bed frame, hollywood frame], ru: [металлическая рама кровати] }
+    cues: "Low steel rails on casters under a box spring; folds or breaks down."
+    dims: { l: [75, 80], w: [38, 76], h: [7, 9] }
+    shape: nestable
+    cuFt: 6
+    disassembly: required
+    disassemblyMin: 10
+  - id: bed-frame-wood-small
+    category: beds
+    rooms: [bedroom, kids_room]
+    name: { en: "Bed frame, wood (Twin/Full)", ru: "Деревянная кровать Twin/Full (каркас)" }
+    aliases: { en: [wooden bed twin, wooden bed full], ru: [деревянная кровать односпальная] }
+    cues: "Headboard, footboard and rails for a twin or full mattress."
+    shape: boxy
+    cuFt: 15
+    disassembly: required
+    disassemblyMin: 20
+  - id: bed-frame-wood-large
+    category: beds
+    rooms: [bedroom]
+    name: { en: "Bed frame, wood (Queen/King)", ru: "Деревянная кровать Queen/King (каркас)" }
+    aliases: { en: [sleigh bed, four poster bed, wooden bed queen, wooden bed king], ru: [двуспальная кровать деревянная] }
+    cues: "Headboard, footboard and rails for a queen or king; poster beds are larger."
+    shape: boxy
+    cuFt: 25
+    disassembly: required
+    disassemblyMin: 30
+  - id: bed-platform-upholstered
+    category: beds
+    rooms: [bedroom]
+    name: { en: "Platform bed, upholstered", ru: "Кровать-подиум с мягким изголовьем" }
+    aliases: { en: [platform bed, upholstered bed], ru: [кровать подиум] }
+    cues: "Fabric-covered frame with slats, no box spring; often a tall padded headboard."
+    shape: irregular
+    cuFt: 30
+    disassembly: required
+    disassemblyMin: 30
+  - id: headboard
+    category: beds
+    rooms: [bedroom]
+    name: { en: "Headboard (standalone)", ru: "Изголовье (отдельное)" }
+    cues: "Only when mounted to a wall or a metal frame, not part of a wood bed."
+    dims: { l: [60, 80], w: [3, 6], h: [40, 60] }
+    shape: flat
+    cuFt: 10
+  - id: bunk-bed
+    category: beds
+    rooms: [kids_room, bedroom]
+    name: { en: "Bunk bed / loft bed", ru: "Двухъярусная кровать / кровать-чердак" }
+    aliases: { en: [loft bed], ru: [кровать чердак] }
+    shape: boxy
+    cuFt: 40
+    disassembly: required
+    disassemblyMin: 45
+  - id: adjustable-base
+    category: beds
+    rooms: [bedroom]
+    name: { en: "Adjustable bed base", ru: "Регулируемое основание кровати" }
+    aliases: { en: [power base, adjustable foundation], ru: [электрическое основание] }
+    cues: "Motorized base with a wired remote; replaces the box spring."
+    dims: { l: [79, 80], w: [59, 76], h: [8, 12] }
+    shape: irregular
+    cuFt: 25
+  - id: daybed
+    category: beds
+    rooms: [bedroom, office, kids_room]
+    name: { en: "Daybed frame", ru: "Кушетка-кровать (дейбед), каркас" }
+    cues: "Twin-size frame with back and arms; count the mattress separately."
+    shape: irregular
+    cuFt: 25
+    disassembly: optional
+    disassemblyMin: 20
+  - id: futon
+    category: seating
+    rooms: [living_room, office, basement, bedroom]
+    name: { en: "Futon (frame and mattress)", ru: "Футон (каркас с матрасом)" }
+    dims: { l: [75, 82], w: [32, 36], h: [30, 34] }
+    shape: irregular
+    cuFt: 30
+    disassembly: optional
+    disassemblyMin: 15
+
+  # ---- Bedroom storage ----
+  - id: dresser-small
+    category: bedroom_storage
+    rooms: [bedroom, kids_room, nursery]
+    name: { en: "Dresser, up to 50 in wide", ru: "Комод до 127 см шириной" }
+    aliases: { en: [dresser, bureau], ru: [комод] }
+    cues: "Low chest of drawers, 3–6 drawers, under about 50 in wide."
+    dims: { l: [30, 50], w: [17, 20], h: [30, 36] }
+    shape: boxy
+    cuFt: 22
+    sizeGroup: dresser
+    sizeRule: { dim: l, max: 50 }
+  - id: dresser-large
+    category: bedroom_storage
+    rooms: [bedroom]
+    name: { en: "Dresser, over 50 in wide", ru: "Комод шире 127 см" }
+    aliases: { en: [double dresser, long dresser, triple dresser], ru: [большой комод] }
+    cues: "Wide double or triple dresser, 6–9 drawers."
+    dims: { l: [50, 72], w: [18, 21], h: [30, 38] }
+    shape: boxy
+    cuFt: 35
+    heavy: false
+    sizeGroup: dresser
+    sizeRule: { dim: l, min: 50 }
+  - id: dresser-mirror
+    category: bedroom_storage
+    rooms: [bedroom]
+    name: { en: "Dresser mirror", ru: "Зеркало от комода" }
+    cues: "Mirror bolted on top of a dresser; removed and packed separately."
+    dims: { l: [30, 48], w: [2, 4], h: [30, 40] }
+    shape: flat
+    cuFt: 5
+    fragile: true
+    disassembly: required
+    disassemblyMin: 5
+    packing: [box-mirror]
+  - id: chest-of-drawers
+    category: bedroom_storage
+    rooms: [bedroom, kids_room]
+    name: { en: "Chest of drawers, tall", ru: "Высокий комод" }
+    aliases: { en: [tallboy, highboy, chest], ru: [высокий комод с ящиками] }
+    cues: "Taller than wide, 5–7 stacked drawers."
+    dims: { l: [30, 40], w: [17, 20], h: [45, 55] }
+    shape: boxy
+    cuFt: 28
+  - id: nightstand
+    category: bedroom_storage
+    rooms: [bedroom, kids_room]
+    name: { en: "Nightstand", ru: "Прикроватная тумбочка" }
+    aliases: { en: [bedside table, night table], ru: [тумбочка] }
+    dims: { l: [18, 28], w: [14, 18], h: [22, 30] }
+    shape: boxy
+    cuFt: 7
+  - id: armoire
+    category: bedroom_storage
+    rooms: [bedroom]
+    name: { en: "Armoire", ru: "Платяной шкаф (армуар)" }
+    aliases: { en: [clothes cabinet, tv armoire], ru: [шкаф для одежды] }
+    cues: "Tall solid-wood cabinet with doors, often crown molding on top."
+    dims: { l: [38, 50], w: [20, 26], h: [70, 80] }
+    shape: boxy
+    cuFt: 55
+    disassembly: optional
+    disassemblyMin: 15
+  - id: wardrobe-freestanding
+    category: bedroom_storage
+    rooms: [bedroom, kids_room]
+    name: { en: "Wardrobe, freestanding (flat-pack)", ru: "Шкаф-гардероб (сборный)" }
+    aliases: { en: [wardrobe, closet system], ru: [гардероб, шкаф купе] }
+    cues: "Particle-board wardrobe, often with sliding or mirrored doors; usually taken apart."
+    dims: { l: [30, 60], w: [20, 24], h: [75, 93] }
+    shape: boxy
+    cuFt: 45
+    disassembly: required
+    disassemblyMin: 45
+  - id: vanity-table
+    category: bedroom_storage
+    rooms: [bedroom]
+    name: { en: "Vanity / makeup table", ru: "Туалетный столик" }
+    dims: { l: [36, 48], w: [16, 20], h: [29, 31] }
+    shape: boxy
+    cuFt: 15
+  - id: chest-trunk
+    category: bedroom_storage
+    rooms: [bedroom, living_room, attic, basement]
+    name: { en: "Chest / trunk", ru: "Сундук" }
+    aliases: { en: [cedar chest, hope chest, blanket chest, steamer trunk], ru: [сундук для одеял] }
+    dims: { l: [36, 48], w: [17, 20], h: [18, 24] }
+    shape: boxy
+    cuFt: 13
+  - id: bench
+    category: seating
+    rooms: [bedroom, hallway, living_room]
+    name: { en: "Bench (upholstered or entry)", ru: "Скамья / банкетка" }
+    aliases: { en: [end of bed bench, entryway bench], ru: [банкетка] }
+    dims: { l: [40, 60], w: [14, 18], h: [17, 20] }
+    shape: irregular
+    cuFt: 8
+  - id: floor-mirror
+    category: decor
+    rooms: [bedroom, hallway, living_room]
+    name: { en: "Floor mirror, full length", ru: "Напольное зеркало в рост" }
+    aliases: { en: [standing mirror, cheval mirror], ru: [зеркало в полный рост] }
+    dims: { l: [18, 30], w: [2, 4], h: [58, 70] }
+    shape: flat
+    cuFt: 5
+    fragile: true
+    packing: [box-mirror]

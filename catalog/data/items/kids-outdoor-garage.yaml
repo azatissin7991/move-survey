@@ -1,0 +1,375 @@
+# Kids and nursery, outdoor, garage and tools, fitness.
+defaultSources:
+  - { field: all, ref: est-draft }
+
+items:
+  # ---- Kids & nursery ----
+  - id: crib
+    category: kids
+    rooms: [nursery, kids_room]
+    name: { en: "Crib", ru: "Детская кроватка" }
+    aliases: { en: [baby bed, convertible crib], ru: [кроватка для младенца] }
+    shape: boxy
+    cuFt: 15
+    disassembly: required
+    disassemblyMin: 20
+  - id: changing-table
+    category: kids
+    rooms: [nursery]
+    name: { en: "Changing table", ru: "Пеленальный столик" }
+    dims: { l: [30, 36], w: [16, 20], h: [36, 40] }
+    shape: boxy
+    cuFt: 12
+  - id: toddler-bed
+    category: kids
+    rooms: [kids_room, nursery]
+    name: { en: "Toddler bed", ru: "Кровать для малыша" }
+    shape: boxy
+    cuFt: 12
+    disassembly: optional
+    disassemblyMin: 10
+  - id: high-chair
+    category: kids
+    rooms: [kitchen, dining_room]
+    name: { en: "High chair", ru: "Детский стульчик для кормления" }
+    shape: irregular
+    cuFt: 5
+  - id: toy-chest
+    category: kids
+    rooms: [kids_room, nursery, family_room]
+    name: { en: "Toy chest / toy storage", ru: "Ящик / стеллаж для игрушек" }
+    aliases: { en: [toy box, toy organizer], ru: [ящик для игрушек] }
+    dims: { l: [30, 40], w: [15, 18], h: [16, 22] }
+    shape: boxy
+    cuFt: 8
+  - id: stroller
+    category: kids
+    rooms: [hallway, garage]
+    name: { en: "Stroller", ru: "Детская коляска" }
+    aliases: { en: [pram, jogging stroller], ru: [коляска] }
+    shape: irregular
+    cuFt: 5
+  - id: play-kitchen
+    category: kids
+    rooms: [kids_room, family_room]
+    name: { en: "Play kitchen / large toy", ru: "Игрушечная кухня / крупная игрушка" }
+    aliases: { en: [dollhouse, play table, train table], ru: [кукольный домик] }
+    shape: irregular
+    cuFt: 8
+  - id: kids-table-set
+    category: kids
+    rooms: [kids_room, family_room]
+    name: { en: "Kids table and chairs", ru: "Детский столик со стульями" }
+    shape: irregular
+    cuFt: 6
+
+  # ---- Outdoor ----
+  - id: patio-table
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Patio table", ru: "Садовый стол" }
+    aliases: { en: [outdoor dining table], ru: [уличный стол] }
+    dims: { l: [40, 72], w: [36, 42], h: [28, 30] }
+    shape: irregular
+    cuFt: 21
+  - id: patio-chair
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Patio chair", ru: "Садовый стул / кресло" }
+    aliases: { en: [outdoor chair, adirondack chair], ru: [уличное кресло] }
+    shape: nestable
+    cuFt: 5
+  - id: patio-sofa-piece
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Patio sofa / sectional piece", ru: "Уличный диван, за секцию" }
+    shape: irregular
+    cuFt: 25
+  - id: patio-chaise
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Patio chaise / lounger", ru: "Шезлонг уличный" }
+    aliases: { en: [sun lounger, pool lounger], ru: [лежак] }
+    shape: irregular
+    cuFt: 10
+  - id: patio-umbrella
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Patio umbrella", ru: "Садовый зонт" }
+    shape: irregular
+    cuFt: 3
+  - id: umbrella-base
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Umbrella base (weighted)", ru: "Утяжелённое основание зонта" }
+    shape: boxy
+    cuFt: 2
+    weightLbs: 50
+    weightNote: "Cast iron or concrete; dense."
+  - id: grill-gas
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Grill, gas (cart)", ru: "Газовый гриль" }
+    aliases: { en: [bbq grill, barbecue], ru: [гриль, барбекю] }
+    cues: "Propane tanks cannot go on the truck."
+    dims: { l: [48, 60], w: [20, 26], h: [42, 48] }
+    shape: irregular
+    cuFt: 20
+  - id: grill-small
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Grill, kettle / small", ru: "Гриль небольшой (котёл)" }
+    shape: irregular
+    cuFt: 6
+  - id: fire-pit
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Fire pit / patio heater", ru: "Костровая чаша / уличный обогреватель" }
+    shape: irregular
+    cuFt: 6
+  - id: deck-box
+    category: outdoor
+    rooms: [patio, garage]
+    name: { en: "Deck box / outdoor storage box", ru: "Уличный ящик для хранения" }
+    shape: boxy
+    cuFt: 12
+  - id: bicycle
+    category: outdoor
+    rooms: [garage, patio, hallway, storage]
+    name: { en: "Bicycle, adult", ru: "Велосипед взрослый" }
+    aliases: { en: [bike, e-bike], ru: [велосипед, электровелосипед] }
+    shape: irregular
+    cuFt: 7
+  - id: bicycle-kids
+    category: outdoor
+    rooms: [garage, patio, kids_room]
+    name: { en: "Bicycle / scooter, kids", ru: "Детский велосипед / самокат" }
+    shape: irregular
+    cuFt: 4
+  - id: kayak
+    category: outdoor
+    rooms: [garage, patio, storage]
+    name: { en: "Kayak / paddleboard", ru: "Каяк / сап-доска" }
+    aliases: { en: [canoe small, paddle board], ru: [байдарка] }
+    shape: irregular
+    cuFt: 15
+  - id: trampoline
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Trampoline (disassembled)", ru: "Батут (в разборе)" }
+    shape: irregular
+    cuFt: 30
+    disassembly: required
+    disassemblyMin: 60
+  - id: planter-large
+    category: outdoor
+    rooms: [patio]
+    name: { en: "Planter / pot, large (empty)", ru: "Кашпо / горшок крупный (пустой)" }
+    shape: irregular
+    cuFt: 5
+    fragile: true
+
+  # ---- Garage & tools ----
+  - id: lawn-mower-push
+    category: garage_tools
+    rooms: [garage, storage]
+    name: { en: "Lawn mower, push", ru: "Газонокосилка ручная" }
+    cues: "Fuel and oil must be drained before the move."
+    shape: irregular
+    cuFt: 10
+    special: motorized
+  - id: lawn-mower-riding
+    category: garage_tools
+    rooms: [garage]
+    name: { en: "Lawn mower, riding", ru: "Газонокосилка-трактор" }
+    aliases: { en: [riding mower, lawn tractor], ru: [райдер] }
+    shape: irregular
+    cuFt: 60
+    heavy: true
+    special: motorized
+  - id: snowblower
+    category: garage_tools
+    rooms: [garage]
+    name: { en: "Snow blower", ru: "Снегоуборщик" }
+    shape: irregular
+    cuFt: 25
+    special: motorized
+  - id: generator-portable
+    category: garage_tools
+    rooms: [garage]
+    name: { en: "Generator, portable", ru: "Генератор переносной" }
+    shape: boxy
+    cuFt: 8
+    weightLbs: 150
+    weightNote: "Engine and alternator; dense."
+    special: motorized
+  - id: pressure-washer
+    category: garage_tools
+    rooms: [garage]
+    name: { en: "Pressure washer", ru: "Мойка высокого давления" }
+    shape: irregular
+    cuFt: 6
+  - id: tool-chest-rolling
+    category: garage_tools
+    rooms: [garage, basement]
+    name: { en: "Tool chest, rolling (full)", ru: "Инструментальная тележка/шкаф (с инструментом)" }
+    aliases: { en: [tool cabinet, mechanic chest, toolbox], ru: [ящик для инструментов] }
+    cues: "Stacked drawer chest on casters; usually moved full with drawers secured."
+    shape: boxy
+    cuFt: 25
+    weightLbs: 400
+    weightNote: "Moved full of tools."
+    heavy: true
+  - id: workbench
+    category: garage_tools
+    rooms: [garage, basement]
+    name: { en: "Workbench", ru: "Верстак" }
+    shape: irregular
+    cuFt: 20
+    disassembly: optional
+    disassemblyMin: 20
+  - id: shelving-metal
+    category: garage_tools
+    rooms: [garage, basement, storage, laundry]
+    name: { en: "Shelving unit, metal / plastic", ru: "Стеллаж металлический / пластиковый" }
+    aliases: { en: [wire shelving, garage shelf, utility shelf], ru: [металлический стеллаж] }
+    shape: nestable
+    cuFt: 10
+    disassembly: required
+    disassemblyMin: 10
+  - id: table-saw
+    category: garage_tools
+    rooms: [garage, basement]
+    name: { en: "Table saw / large power tool", ru: "Настольная пила / крупный электроинструмент" }
+    aliases: { en: [miter saw stand, drill press, band saw], ru: [циркулярная пила] }
+    shape: irregular
+    cuFt: 15
+  - id: ladder
+    category: garage_tools
+    rooms: [garage, storage, basement]
+    name: { en: "Ladder", ru: "Лестница-стремянка" }
+    aliases: { en: [step ladder, extension ladder], ru: [стремянка] }
+    shape: flat
+    cuFt: 4
+  - id: wheelbarrow
+    category: garage_tools
+    rooms: [garage, patio]
+    name: { en: "Wheelbarrow", ru: "Садовая тачка" }
+    shape: irregular
+    cuFt: 8
+  - id: shop-vac
+    category: garage_tools
+    rooms: [garage, basement]
+    name: { en: "Shop vacuum", ru: "Строительный пылесос" }
+    shape: irregular
+    cuFt: 4
+  - id: garden-tools-bundle
+    category: garage_tools
+    rooms: [garage, patio, storage]
+    name: { en: "Garden tools (bundle)", ru: "Садовый инструмент (связка)" }
+    cues: "Rakes, shovels, brooms tied together; one bundle per 4–6 tools."
+    shape: irregular
+    cuFt: 3
+  - id: trash-can
+    category: garage_tools
+    rooms: [garage, kitchen, patio]
+    name: { en: "Trash / recycling can", ru: "Мусорный бак" }
+    shape: nestable
+    cuFt: 3
+  - id: tires-set
+    category: garage_tools
+    rooms: [garage]
+    name: { en: "Tires, set of 4", ru: "Шины, комплект из 4" }
+    shape: irregular
+    cuFt: 10
+
+  # ---- Fitness ----
+  - id: treadmill
+    category: fitness
+    rooms: [basement, garage, bedroom, family_room]
+    name: { en: "Treadmill", ru: "Беговая дорожка" }
+    shape: irregular
+    cuFt: 40
+    weightLbs: 300
+    weightNote: "Motor and steel deck; typical 250–350 lb."
+    heavy: true
+    special: gym_equipment
+    disassembly: optional
+    disassemblyMin: 20
+  - id: elliptical
+    category: fitness
+    rooms: [basement, garage, bedroom, family_room]
+    name: { en: "Elliptical", ru: "Эллиптический тренажёр" }
+    shape: irregular
+    cuFt: 35
+    heavy: true
+    special: gym_equipment
+    disassembly: optional
+    disassemblyMin: 20
+  - id: exercise-bike
+    category: fitness
+    rooms: [basement, bedroom, family_room, office]
+    name: { en: "Exercise bike", ru: "Велотренажёр" }
+    aliases: { en: [spin bike, stationary bike], ru: [велотренажер] }
+    shape: irregular
+    cuFt: 15
+    special: gym_equipment
+  - id: rowing-machine
+    category: fitness
+    rooms: [basement, garage, family_room]
+    name: { en: "Rowing machine", ru: "Гребной тренажёр" }
+    shape: irregular
+    cuFt: 15
+    special: gym_equipment
+  - id: weight-bench
+    category: fitness
+    rooms: [basement, garage]
+    name: { en: "Weight bench / squat rack", ru: "Скамья для жима / силовая стойка" }
+    aliases: { en: [squat rack, power rack], ru: [силовая рама] }
+    shape: irregular
+    cuFt: 15
+    special: gym_equipment
+    disassembly: optional
+    disassemblyMin: 20
+  - id: weights-set
+    category: fitness
+    rooms: [basement, garage]
+    name: { en: "Free weights (dumbbells / plates set)", ru: "Свободные веса (гантели / блины)" }
+    aliases: { en: [dumbbells, weight plates, kettlebells], ru: [гантели, гири] }
+    cues: "Per set of roughly 200 lb; count more sets for larger collections."
+    shape: boxy
+    cuFt: 5
+    weightLbs: 200
+    weightNote: "Solid iron."
+  - id: home-gym
+    category: fitness
+    rooms: [basement, garage]
+    name: { en: "Home gym, multi-station", ru: "Многофункциональный силовой тренажёр" }
+    shape: irregular
+    cuFt: 60
+    heavy: true
+    special: gym_equipment
+    disassembly: required
+    disassemblyMin: 60
+  - id: pool-table
+    category: fitness
+    rooms: [basement, family_room, garage]
+    name: { en: "Pool table (slate)", ru: "Бильярдный стол (сланец)" }
+    aliases: { en: [billiard table, snooker table], ru: [бильярд] }
+    cues: "Slate is removed and crated; usually needs a specialist."
+    shape: irregular
+    cuFt: 60
+    weightLbs: 700
+    weightNote: "One-piece or three-piece slate plus frame."
+    heavy: true
+    special: pool_table
+    crating: true
+    disassembly: required
+    disassemblyMin: 90
+  - id: ping-pong-table
+    category: fitness
+    rooms: [basement, garage, family_room]
+    name: { en: "Ping-pong table (folding)", ru: "Теннисный стол (складной)" }
+    aliases: { en: [table tennis table], ru: [стол для настольного тенниса] }
+    shape: flat
+    cuFt: 25

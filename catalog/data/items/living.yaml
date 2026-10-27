@@ -1,0 +1,417 @@
+# Seating, tables, storage furniture, electronics and decor for living areas.
+defaultSources:
+  - { field: all, ref: est-draft }
+
+items:
+  # ---- Sofas (size by length) ----
+  - id: sofa-loveseat
+    category: seating
+    rooms: [living_room, family_room, basement, office]
+    name: { en: "Loveseat (2-seat sofa)", ru: "Двухместный диван" }
+    aliases: { en: [loveseat, love seat, two seater], ru: [диванчик, двухместный диван] }
+    cues: "Two seat cushions, about 55–71 in long."
+    dims: { l: [55, 72], w: [32, 40], h: [30, 38] }
+    shape: irregular
+    cuFt: 35
+    sizeGroup: sofa
+    sizeRule: { dim: l, max: 72 }
+  - id: sofa-3-seat
+    category: seating
+    rooms: [living_room, family_room, basement]
+    name: { en: "Sofa, 3-seat", ru: "Диван трёхместный" }
+    aliases: { en: [sofa, couch, settee], ru: [диван, софа] }
+    cues: "Three seat cushions (or one bench cushion), about 72–92 in long."
+    dims: { l: [72, 92], w: [33, 40], h: [30, 38] }
+    shape: irregular
+    cuFt: 48
+    sizeGroup: sofa
+    sizeRule: { dim: l, min: 72, max: 92 }
+  - id: sofa-4-seat
+    category: seating
+    rooms: [living_room, family_room, basement]
+    name: { en: "Sofa, oversized (over 92 in)", ru: "Диван большой (более 234 см)" }
+    aliases: { en: [extra long sofa, oversized couch], ru: [большой диван] }
+    cues: "Four cushions or very long, over about 92 in."
+    dims: { l: [92, 110], w: [34, 42], h: [30, 38] }
+    shape: irregular
+    cuFt: 60
+    sizeGroup: sofa
+    sizeRule: { dim: l, min: 92 }
+  - id: sofa-sleeper
+    category: seating
+    rooms: [living_room, family_room, basement, office]
+    name: { en: "Sleeper sofa (pull-out bed)", ru: "Диван-кровать" }
+    aliases: { en: [sofa bed, pull out couch, hide-a-bed], ru: [раскладной диван] }
+    cues: "Looks like a sofa; deep seat with a folded metal bed mechanism inside."
+    dims: { l: [75, 90], w: [36, 42], h: [32, 38] }
+    shape: irregular
+    cuFt: 60
+    heavy: true
+  - id: sectional-piece
+    category: seating
+    rooms: [living_room, family_room, basement]
+    name: { en: "Sectional sofa, per piece", ru: "Угловой/модульный диван, за секцию" }
+    aliases: { en: [sectional, modular sofa, corner sofa], ru: [угловой диван, модульный диван] }
+    cues: "Count each separable piece (corner, armless, chaise ends)."
+    shape: irregular
+    cuFt: 28
+  - id: chaise-lounge
+    category: seating
+    rooms: [living_room, bedroom, family_room]
+    name: { en: "Chaise lounge", ru: "Шезлонг (кушетка)" }
+    aliases: { en: [chaise], ru: [кушетка] }
+    dims: { l: [60, 72], w: [24, 32], h: [30, 36] }
+    shape: irregular
+    cuFt: 25
+  - id: recliner
+    category: seating
+    rooms: [living_room, family_room, basement, bedroom]
+    name: { en: "Recliner", ru: "Кресло-реклайнер" }
+    aliases: { en: [lazy boy, lift chair, reclining chair], ru: [раскладное кресло] }
+    dims: { l: [30, 40], w: [34, 40], h: [38, 42] }
+    shape: irregular
+    cuFt: 25
+  - id: armchair
+    category: seating
+    rooms: [living_room, family_room, bedroom, office]
+    name: { en: "Armchair, upholstered", ru: "Кресло мягкое" }
+    aliases: { en: [club chair, wingback chair, arm chair], ru: [кресло] }
+    dims: { l: [28, 38], w: [30, 38], h: [30, 38] }
+    shape: irregular
+    cuFt: 18
+  - id: accent-chair
+    category: seating
+    rooms: [living_room, bedroom, office, hallway]
+    name: { en: "Accent chair, small", ru: "Стул/кресло небольшое (акцентное)" }
+    aliases: { en: [side chair, slipper chair], ru: [пуфик-кресло] }
+    cues: "Small occasional chair, no thick arms."
+    dims: { l: [20, 28], w: [22, 30], h: [30, 36] }
+    shape: irregular
+    cuFt: 10
+  - id: rocking-chair
+    category: seating
+    rooms: [living_room, nursery, patio, bedroom]
+    name: { en: "Rocking chair / glider", ru: "Кресло-качалка / глайдер" }
+    aliases: { en: [glider, nursing chair, rocker], ru: [качалка] }
+    shape: irregular
+    cuFt: 15
+  - id: ottoman
+    category: seating
+    rooms: [living_room, family_room, bedroom]
+    name: { en: "Ottoman / footstool", ru: "Пуф / подставка для ног" }
+    aliases: { en: [footstool, pouf, hassock], ru: [пуф] }
+    dims: { l: [18, 36], w: [18, 36], h: [16, 20] }
+    shape: irregular
+    cuFt: 5
+  - id: bean-bag
+    category: seating
+    rooms: [kids_room, family_room, basement]
+    name: { en: "Bean bag chair", ru: "Кресло-мешок" }
+    shape: soft
+    cuFt: 8
+
+  # ---- Tables ----
+  - id: coffee-table
+    category: tables
+    rooms: [living_room, family_room]
+    name: { en: "Coffee table", ru: "Журнальный столик" }
+    aliases: { en: [cocktail table], ru: [кофейный столик] }
+    cues: "Low table in front of a sofa; glass tops are fragile."
+    dims: { l: [36, 54], w: [18, 30], h: [16, 20] }
+    shape: irregular
+    cuFt: 10
+  - id: end-table
+    category: tables
+    rooms: [living_room, family_room, bedroom]
+    name: { en: "End table / side table", ru: "Приставной столик" }
+    aliases: { en: [side table, accent table, lamp table], ru: [столик] }
+    dims: { l: [18, 26], w: [18, 26], h: [20, 28] }
+    shape: irregular
+    cuFt: 5
+  - id: console-table
+    category: tables
+    rooms: [living_room, hallway, dining_room]
+    name: { en: "Console / sofa table", ru: "Консоль (столик-консоль)" }
+    aliases: { en: [sofa table, entry table, hall table], ru: [консольный столик] }
+    dims: { l: [40, 60], w: [12, 18], h: [28, 34] }
+    shape: irregular
+    cuFt: 10
+  - id: dining-table-small
+    category: tables
+    rooms: [dining_room, kitchen]
+    name: { en: "Dining table, seats 4 (under 60 in)", ru: "Обеденный стол на 4 места (до 152 см)" }
+    aliases: { en: [kitchen table, breakfast table, round table], ru: [кухонный стол] }
+    dims: { l: [36, 60], w: [30, 40], h: [29, 31] }
+    shape: irregular
+    cuFt: 20
+    disassembly: optional
+    disassemblyMin: 10
+    sizeGroup: dining_table
+    sizeRule: { dim: l, max: 60 }
+  - id: dining-table-large
+    category: tables
+    rooms: [dining_room]
+    name: { en: "Dining table, seats 6+ (60 in and over)", ru: "Обеденный стол на 6+ мест (от 152 см)" }
+    aliases: { en: [dining table, farmhouse table, extension table], ru: [обеденный стол, большой стол] }
+    cues: "Count leaves with the table; pedestal and trestle bases come apart."
+    dims: { l: [60, 96], w: [36, 44], h: [29, 31] }
+    shape: irregular
+    cuFt: 32
+    disassembly: optional
+    disassemblyMin: 15
+    sizeGroup: dining_table
+    sizeRule: { dim: l, min: 60 }
+  - id: dining-chair
+    category: seating
+    rooms: [dining_room, kitchen]
+    name: { en: "Dining chair", ru: "Стул обеденный" }
+    aliases: { en: [kitchen chair, dining room chair], ru: [стул] }
+    dims: { l: [17, 22], w: [19, 24], h: [34, 40] }
+    shape: irregular
+    cuFt: 5
+  - id: dining-bench
+    category: seating
+    rooms: [dining_room, kitchen]
+    name: { en: "Dining bench", ru: "Обеденная скамья" }
+    dims: { l: [40, 60], w: [13, 16], h: [17, 19] }
+    shape: boxy
+    cuFt: 8
+  - id: bar-stool
+    category: seating
+    rooms: [kitchen, dining_room, basement]
+    name: { en: "Bar / counter stool", ru: "Барный стул" }
+    aliases: { en: [counter stool, high stool], ru: [барный табурет] }
+    dims: { l: [15, 20], w: [15, 20], h: [24, 32] }
+    shape: irregular
+    cuFt: 4
+  - id: folding-table
+    category: tables
+    rooms: [garage, basement, storage, other]
+    name: { en: "Folding table", ru: "Складной стол" }
+    aliases: { en: [card table, banquet table], ru: [раскладной стол] }
+    shape: flat
+    cuFt: 3
+  - id: folding-chair
+    category: seating
+    rooms: [garage, basement, storage, other]
+    name: { en: "Folding chair", ru: "Складной стул" }
+    shape: nestable
+    cuFt: 1.5
+
+  # ---- Storage furniture ----
+  - id: china-cabinet
+    category: storage_furniture
+    rooms: [dining_room]
+    name: { en: "China cabinet / hutch", ru: "Сервант / буфет со стеклом" }
+    aliases: { en: [hutch, china hutch, display hutch], ru: [сервант, горка] }
+    cues: "Tall cabinet with glass doors on top; top and base separate."
+    dims: { l: [40, 72], w: [16, 20], h: [72, 84] }
+    shape: boxy
+    cuFt: 50
+    fragile: true
+    disassembly: optional
+    disassemblyMin: 15
+  - id: buffet-sideboard
+    category: storage_furniture
+    rooms: [dining_room, living_room]
+    name: { en: "Buffet / sideboard / credenza", ru: "Буфет / комод для столовой / креденца" }
+    aliases: { en: [sideboard, credenza, buffet], ru: [буфет, креденца] }
+    dims: { l: [48, 72], w: [16, 20], h: [30, 36] }
+    shape: boxy
+    cuFt: 28
+  - id: curio-cabinet
+    category: storage_furniture
+    rooms: [living_room, dining_room]
+    name: { en: "Curio / display cabinet", ru: "Витрина" }
+    aliases: { en: [display cabinet, glass cabinet], ru: [стеклянная витрина] }
+    dims: { l: [30, 40], w: [14, 18], h: [70, 80] }
+    shape: boxy
+    cuFt: 25
+    fragile: true
+  - id: bookcase-small
+    category: storage_furniture
+    rooms: [living_room, office, kids_room, bedroom]
+    name: { en: "Bookcase, under 48 in tall", ru: "Книжный шкаф до 122 см" }
+    aliases: { en: [bookshelf small, low bookcase, cube shelf], ru: [книжная полка] }
+    dims: { l: [24, 36], w: [10, 14], h: [28, 48] }
+    shape: boxy
+    cuFt: 10
+    sizeGroup: bookcase
+    sizeRule: { dim: h, max: 48 }
+  - id: bookcase-large
+    category: storage_furniture
+    rooms: [living_room, office, bedroom, basement]
+    name: { en: "Bookcase, 48 in and taller", ru: "Книжный шкаф от 122 см" }
+    aliases: { en: [bookshelf, tall bookcase, etagere], ru: [книжный шкаф, стеллаж] }
+    dims: { l: [30, 40], w: [11, 15], h: [48, 84] }
+    shape: boxy
+    cuFt: 22
+    sizeGroup: bookcase
+    sizeRule: { dim: h, min: 48 }
+  - id: tv-stand-small
+    category: storage_furniture
+    rooms: [living_room, family_room, bedroom]
+    name: { en: "TV stand, under 60 in", ru: "Тумба под ТВ до 152 см" }
+    aliases: { en: [media console small, tv cabinet], ru: [тумба под телевизор] }
+    dims: { l: [36, 60], w: [15, 20], h: [18, 26] }
+    shape: boxy
+    cuFt: 12
+    sizeGroup: tv_stand
+    sizeRule: { dim: l, max: 60 }
+  - id: tv-stand-large
+    category: storage_furniture
+    rooms: [living_room, family_room]
+    name: { en: "TV stand / media console, 60 in and over", ru: "Тумба под ТВ от 152 см" }
+    aliases: { en: [media console, entertainment console], ru: [большая тумба под ТВ] }
+    dims: { l: [60, 80], w: [16, 20], h: [20, 30] }
+    shape: boxy
+    cuFt: 22
+    sizeGroup: tv_stand
+    sizeRule: { dim: l, min: 60 }
+  - id: entertainment-center
+    category: storage_furniture
+    rooms: [living_room, family_room, basement]
+    name: { en: "Entertainment center / wall unit", ru: "Стенка / ТВ-стенка" }
+    aliases: { en: [wall unit, media wall], ru: [стенка, мебельная стенка] }
+    cues: "Tall unit with shelves and cabinets around a TV; usually in sections."
+    dims: { l: [60, 96], w: [18, 24], h: [60, 84] }
+    shape: boxy
+    cuFt: 65
+    disassembly: optional
+    disassemblyMin: 20
+  - id: storage-cabinet
+    category: storage_furniture
+    rooms: [garage, laundry, basement, kitchen, office]
+    name: { en: "Storage / utility cabinet", ru: "Хозяйственный шкаф" }
+    aliases: { en: [pantry cabinet, utility cabinet], ru: [шкаф для хранения] }
+    dims: { l: [30, 36], w: [15, 24], h: [66, 72] }
+    shape: boxy
+    cuFt: 28
+  - id: shoe-rack
+    category: storage_furniture
+    rooms: [hallway, bedroom]
+    name: { en: "Shoe rack / small shelf", ru: "Обувница / небольшая полка" }
+    shape: boxy
+    cuFt: 4
+  - id: coat-rack
+    category: decor
+    rooms: [hallway]
+    name: { en: "Coat rack / hall tree", ru: "Вешалка напольная" }
+    aliases: { en: [hall tree, coat stand], ru: [вешалка] }
+    shape: irregular
+    cuFt: 5
+
+  # ---- Electronics ----
+  - id: tv-small
+    category: electronics
+    rooms: [bedroom, kids_room, kitchen, office]
+    name: { en: "TV, under 45 in", ru: "Телевизор до 45 дюймов" }
+    cues: "Diagonal under 45 in."
+    shape: flat
+    cuFt: 5
+    fragile: true
+    packing: [box-tv]
+    sizeGroup: tv
+    sizeRule: { dim: diag, max: 45 }
+  - id: tv-medium
+    category: electronics
+    rooms: [living_room, family_room, bedroom, basement]
+    name: { en: "TV, 45–64 in", ru: "Телевизор 45–64 дюйма" }
+    cues: "Diagonal 45 to under 65 in."
+    shape: flat
+    cuFt: 10
+    fragile: true
+    packing: [box-tv]
+    sizeGroup: tv
+    sizeRule: { dim: diag, min: 45, max: 65 }
+  - id: tv-large
+    category: electronics
+    rooms: [living_room, family_room, basement]
+    name: { en: "TV, 65 in and over", ru: "Телевизор от 65 дюймов" }
+    cues: "Diagonal 65 in or more; wall-mounted sets need the mount removed."
+    shape: flat
+    cuFt: 16
+    fragile: true
+    crating: true
+    packing: [box-tv]
+    sizeGroup: tv
+    sizeRule: { dim: diag, min: 65 }
+  - id: speaker-floor
+    category: electronics
+    rooms: [living_room, family_room, basement]
+    name: { en: "Floor-standing speaker", ru: "Напольная колонка" }
+    aliases: { en: [tower speaker, subwoofer], ru: [колонка, сабвуфер] }
+    cues: "Count each speaker or subwoofer."
+    shape: boxy
+    cuFt: 4
+
+  # ---- Decor ----
+  - id: floor-lamp
+    category: decor
+    rooms: [living_room, bedroom, office, family_room]
+    name: { en: "Floor lamp", ru: "Торшер" }
+    aliases: { en: [standing lamp, arc lamp], ru: [напольная лампа] }
+    shape: irregular
+    cuFt: 3
+    fragile: true
+  - id: table-lamp
+    category: decor
+    rooms: [living_room, bedroom, office, family_room]
+    name: { en: "Table lamp", ru: "Настольная лампа" }
+    shape: irregular
+    cuFt: 2
+    fragile: true
+  - id: rug-small
+    category: decor
+    rooms: [living_room, bedroom, kids_room, hallway, office]
+    name: { en: "Rug, up to 5×8 ft (rolled)", ru: "Ковёр до 150×240 см (в рулоне)" }
+    aliases: { en: [area rug small, runner], ru: [ковёр, дорожка] }
+    shape: soft
+    cuFt: 3
+  - id: rug-large
+    category: decor
+    rooms: [living_room, dining_room, bedroom, family_room]
+    name: { en: "Rug, 8×10 ft and larger (rolled)", ru: "Ковёр от 240×300 см (в рулоне)" }
+    aliases: { en: [area rug, large rug], ru: [большой ковёр] }
+    shape: soft
+    cuFt: 8
+  - id: mirror-wall
+    category: decor
+    rooms: [living_room, dining_room, bedroom, hallway, bathroom]
+    name: { en: "Wall mirror, large", ru: "Настенное зеркало, большое" }
+    cues: "Larger than about 24×30 in; smaller mirrors go in boxes."
+    dims: { l: [24, 48], w: [1, 3], h: [30, 60] }
+    shape: flat
+    cuFt: 5
+    fragile: true
+    packing: [box-mirror]
+  - id: artwork-large
+    category: decor
+    rooms: [living_room, dining_room, bedroom, hallway, office]
+    name: { en: "Framed art / picture, large", ru: "Картина в раме, большая" }
+    aliases: { en: [painting, canvas, framed print], ru: [картина, постер в раме] }
+    cues: "Larger than about 24×30 in; high-value art may need a crate."
+    shape: flat
+    cuFt: 4
+    fragile: true
+    packing: [box-mirror]
+  - id: clock-grandfather
+    category: decor
+    rooms: [living_room, hallway, dining_room]
+    name: { en: "Grandfather clock", ru: "Напольные часы" }
+    aliases: { en: [floor clock, tall case clock], ru: [часы напольные] }
+    cues: "Tall case clock with pendulum; weights and pendulum are removed first."
+    dims: { l: [18, 24], w: [10, 14], h: [72, 84] }
+    shape: boxy
+    cuFt: 20
+    fragile: true
+    crating: true
+    disassembly: required
+    disassemblyMin: 15
+  - id: plant-large
+    category: decor
+    rooms: [living_room, patio, office, bedroom]
+    name: { en: "Plant, large (potted)", ru: "Растение крупное (в горшке)" }
+    cues: "Floor plants over about 3 ft; many carriers won't take plants long distance."
+    shape: irregular
+    cuFt: 6

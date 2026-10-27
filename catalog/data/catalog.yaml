@@ -1,0 +1,41 @@
+# Catalog-wide settings. Bump `version` whenever item values change in a way
+# that should be traceable; surveys record the version they were priced with.
+version: 1
+
+# Estimating weight = loaded cu ft × this, unless an item overrides it with a
+# note. This is the industry estimating convention, not a scale weight.
+densityLbsPerCuFt: 7
+
+# Loaded cu ft / bounding box, for items priced from measured dimensions
+# (custom items, stage D). Initial values; calibrated from job outcomes.
+customLoadedFactor:
+  boxy: 1.3       # case goods: pads and dead space around them
+  irregular: 0.95 # sofas, chairs: other things load into and on top of them
+  soft: 0.9       # mattresses, cushions: compress when loaded
+  nestable: 0.6   # stacking chairs, bins, frames
+  flat: 1.5       # TVs, mirrors, art: carton or pad plus stand-off space
+
+# Sanity range for cuFt / bounding box per shape. Outside it the build warns,
+# which usually means the dims or the cu ft are a typo.
+boxRatioBounds:
+  boxy: [0.9, 1.9]
+  irregular: [0.55, 1.3]
+  soft: [0.6, 1.4]
+  nestable: [0.25, 1.1]
+  flat: [0.8, 3.5]
+
+# Warn when an item differs from a reference table by more than this share.
+referenceTolerance: 0.25
+
+sources:
+  - id: est-draft
+    kind: estimate
+    title: Drafted from typical household-goods values; needs a citation before sign-off
+  - id: industry-7lb
+    kind: industry_check
+    title: Industry estimating convention of 7 lb per cubic foot
+  - id: usmil-weight-estimator
+    kind: public_domain
+    title: USTRANSCOM household goods weight estimator (spreadsheet)
+    url: https://www.business.ustranscom.mil/dp3/weightestimator.cfm
+    note: Download in a browser and transcribe into references/usmil-weight-estimator.csv

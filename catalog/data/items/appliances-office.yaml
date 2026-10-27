@@ -1,0 +1,324 @@
+# Appliances, office furniture, safes, pianos and instruments.
+defaultSources:
+  - { field: all, ref: est-draft }
+
+items:
+  # ---- Appliances ----
+  - id: refrigerator-standard
+    category: appliances
+    rooms: [kitchen, garage, basement]
+    name: { en: "Refrigerator, under 33 in wide", ru: "Холодильник до 84 см шириной" }
+    aliases: { en: [fridge, top freezer fridge], ru: [холодильник] }
+    cues: "Single-door or top/bottom freezer, under about 33 in wide."
+    dims: { l: [28, 33], w: [28, 34], h: [64, 70] }
+    shape: boxy
+    cuFt: 45
+    heavy: true
+    special: appliance
+    sizeGroup: refrigerator
+    sizeRule: { dim: l, max: 33 }
+  - id: refrigerator-large
+    category: appliances
+    rooms: [kitchen, garage]
+    name: { en: "Refrigerator, 33 in and wider", ru: "Холодильник от 84 см шириной" }
+    aliases: { en: [french door fridge, side by side fridge, refrigerator], ru: [двухдверный холодильник] }
+    cues: "French-door or side-by-side, 33–36 in wide; ice maker water line to disconnect."
+    dims: { l: [33, 36], w: [29, 36], h: [68, 72] }
+    shape: boxy
+    cuFt: 60
+    heavy: true
+    special: appliance
+    sizeGroup: refrigerator
+    sizeRule: { dim: l, min: 33 }
+  - id: freezer-upright
+    category: appliances
+    rooms: [garage, basement, kitchen]
+    name: { en: "Freezer, upright", ru: "Морозильник вертикальный" }
+    dims: { l: [24, 34], w: [25, 30], h: [60, 72] }
+    shape: boxy
+    cuFt: 35
+    special: appliance
+  - id: freezer-chest
+    category: appliances
+    rooms: [garage, basement]
+    name: { en: "Freezer, chest", ru: "Морозильный ларь" }
+    aliases: { en: [deep freezer, chest freezer], ru: [ларь] }
+    dims: { l: [28, 60], w: [22, 30], h: [33, 36] }
+    shape: boxy
+    cuFt: 25
+    special: appliance
+  - id: range-stove
+    category: appliances
+    rooms: [kitchen]
+    name: { en: "Range / stove", ru: "Плита" }
+    aliases: { en: [oven, cooktop range, gas stove, electric stove], ru: [газовая плита, электроплита] }
+    cues: "Freestanding range; gas lines must be disconnected by a professional."
+    dims: { l: [30, 30], w: [25, 29], h: [36, 48] }
+    shape: boxy
+    cuFt: 25
+    special: appliance
+  - id: dishwasher
+    category: appliances
+    rooms: [kitchen]
+    name: { en: "Dishwasher (moving with you)", ru: "Посудомоечная машина (переезжает)" }
+    cues: "Only if uninstalled or portable; built-ins usually stay."
+    dims: { l: [24, 24], w: [24, 26], h: [34, 35] }
+    shape: boxy
+    cuFt: 15
+    special: appliance
+  - id: washer
+    category: appliances
+    rooms: [laundry, garage, basement]
+    name: { en: "Washing machine", ru: "Стиральная машина" }
+    aliases: { en: [washer, clothes washer], ru: [стиралка] }
+    cues: "Front-load needs transit bolts; top-load needs the drum secured."
+    dims: { l: [27, 29], w: [28, 34], h: [38, 44] }
+    shape: boxy
+    cuFt: 25
+    special: appliance
+  - id: dryer
+    category: appliances
+    rooms: [laundry, garage, basement]
+    name: { en: "Clothes dryer", ru: "Сушильная машина" }
+    aliases: { en: [dryer], ru: [сушилка] }
+    dims: { l: [27, 29], w: [28, 34], h: [38, 44] }
+    shape: boxy
+    cuFt: 25
+    special: appliance
+  - id: washer-dryer-stacked
+    category: appliances
+    rooms: [laundry]
+    name: { en: "Washer/dryer, stacked unit", ru: "Стиральная + сушильная машина (колонна)" }
+    aliases: { en: [stackable washer dryer, laundry center], ru: [колонна стирально-сушильная] }
+    dims: { l: [24, 28], w: [25, 33], h: [70, 78] }
+    shape: boxy
+    cuFt: 40
+    heavy: true
+    special: appliance
+  - id: microwave
+    category: appliances
+    rooms: [kitchen, office]
+    name: { en: "Microwave (countertop)", ru: "Микроволновая печь" }
+    aliases: { en: [microwave oven], ru: [микроволновка] }
+    dims: { l: [18, 24], w: [13, 18], h: [10, 14] }
+    shape: boxy
+    cuFt: 3
+  - id: mini-fridge
+    category: appliances
+    rooms: [office, bedroom, basement, garage]
+    name: { en: "Mini fridge / beverage cooler", ru: "Мини-холодильник" }
+    dims: { l: [17, 24], w: [18, 24], h: [19, 35] }
+    shape: boxy
+    cuFt: 8
+  - id: wine-fridge
+    category: appliances
+    rooms: [kitchen, dining_room, basement]
+    name: { en: "Wine fridge (freestanding)", ru: "Винный шкаф" }
+    dims: { l: [15, 24], w: [22, 25], h: [33, 35] }
+    shape: boxy
+    cuFt: 11
+  - id: air-conditioner-window
+    category: appliances
+    rooms: [bedroom, living_room, office, storage]
+    name: { en: "Air conditioner, window or portable", ru: "Кондиционер оконный / мобильный" }
+    dims: { l: [19, 24], w: [15, 25], h: [12, 16] }
+    shape: boxy
+    cuFt: 5
+
+  # ---- Office ----
+  - id: desk-small
+    category: office
+    rooms: [office, bedroom, kids_room]
+    name: { en: "Desk, under 50 in", ru: "Письменный стол до 127 см" }
+    aliases: { en: [writing desk, computer desk, student desk], ru: [письменный стол, компьютерный стол] }
+    dims: { l: [36, 50], w: [18, 26], h: [29, 31] }
+    shape: boxy
+    cuFt: 18
+    sizeGroup: desk
+    sizeRule: { dim: l, max: 50 }
+  - id: desk-large
+    category: office
+    rooms: [office]
+    name: { en: "Desk, 50 in and over", ru: "Письменный стол от 127 см" }
+    aliases: { en: [executive desk, pedestal desk], ru: [руководительский стол] }
+    dims: { l: [50, 72], w: [24, 32], h: [29, 31] }
+    shape: boxy
+    cuFt: 35
+    disassembly: optional
+    disassemblyMin: 15
+    sizeGroup: desk
+    sizeRule: { dim: l, min: 50 }
+  - id: desk-l-shaped
+    category: office
+    rooms: [office]
+    name: { en: "L-shaped / corner desk", ru: "Угловой стол" }
+    aliases: { en: [corner desk, l desk], ru: [г-образный стол] }
+    shape: boxy
+    cuFt: 45
+    disassembly: required
+    disassemblyMin: 30
+  - id: desk-standing
+    category: office
+    rooms: [office, bedroom]
+    name: { en: "Standing desk (motorized)", ru: "Стол с регулировкой высоты" }
+    aliases: { en: [sit stand desk, adjustable desk], ru: [стоячий стол] }
+    shape: irregular
+    cuFt: 20
+    disassembly: required
+    disassemblyMin: 20
+  - id: office-chair
+    category: office
+    rooms: [office, bedroom, kids_room]
+    name: { en: "Office chair", ru: "Офисное кресло" }
+    aliases: { en: [desk chair, task chair, gaming chair], ru: [компьютерное кресло, игровое кресло] }
+    dims: { l: [24, 28], w: [24, 28], h: [38, 48] }
+    shape: irregular
+    cuFt: 10
+  - id: filing-cabinet-2
+    category: office
+    rooms: [office, basement, garage]
+    name: { en: "Filing cabinet, 2-drawer", ru: "Картотечный шкаф, 2 ящика" }
+    dims: { l: [15, 18], w: [22, 28], h: [27, 30] }
+    shape: boxy
+    cuFt: 8
+  - id: filing-cabinet-4
+    category: office
+    rooms: [office, basement, garage]
+    name: { en: "Filing cabinet, 4-drawer", ru: "Картотечный шкаф, 4 ящика" }
+    cues: "Contents should be boxed separately; full cabinets are not safe to carry."
+    dims: { l: [15, 18], w: [25, 28], h: [50, 54] }
+    shape: boxy
+    cuFt: 16
+  - id: filing-cabinet-lateral
+    category: office
+    rooms: [office]
+    name: { en: "Filing cabinet, lateral", ru: "Картотечный шкаф широкий (латеральный)" }
+    dims: { l: [30, 42], w: [18, 20], h: [28, 52] }
+    shape: boxy
+    cuFt: 18
+  - id: computer-monitor
+    category: electronics
+    rooms: [office, bedroom, kids_room]
+    name: { en: "Computer monitor", ru: "Монитор" }
+    shape: flat
+    cuFt: 3
+    fragile: true
+  - id: computer-desktop
+    category: electronics
+    rooms: [office, bedroom, kids_room]
+    name: { en: "Desktop computer (tower)", ru: "Системный блок" }
+    aliases: { en: [pc tower, computer tower], ru: [компьютер] }
+    shape: boxy
+    cuFt: 3
+    fragile: true
+  - id: printer
+    category: electronics
+    rooms: [office]
+    name: { en: "Printer (desktop)", ru: "Принтер" }
+    shape: boxy
+    cuFt: 3
+  - id: safe-small
+    category: office
+    rooms: [office, bedroom, storage]
+    name: { en: "Safe, small (under 2 ft tall)", ru: "Сейф небольшой (до 60 см)" }
+    aliases: { en: [fire safe, lock box safe], ru: [маленький сейф] }
+    shape: boxy
+    cuFt: 5
+    weightLbs: 150
+    weightNote: "Steel and fireproofing; several times the volume convention."
+    special: safe
+  - id: safe-medium
+    category: office
+    rooms: [office, bedroom, storage, basement]
+    name: { en: "Safe, medium (2–4 ft tall)", ru: "Сейф средний (60–120 см)" }
+    aliases: { en: [office safe], ru: [офисный сейф] }
+    shape: boxy
+    cuFt: 10
+    weightLbs: 350
+    weightNote: "Steel and fireproofing; several times the volume convention."
+    heavy: true
+    special: safe
+  - id: gun-safe
+    category: office
+    rooms: [garage, basement, bedroom, storage]
+    name: { en: "Gun safe (tall)", ru: "Оружейный сейф (высокий)" }
+    aliases: { en: [rifle safe, large safe], ru: [оружейный шкаф] }
+    cues: "Tall steel cabinet with a spoked handle and dial; 400–1,000+ lb."
+    dims: { l: [24, 40], w: [20, 28], h: [55, 72] }
+    shape: boxy
+    cuFt: 30
+    weightLbs: 650
+    weightNote: "Typical tall gun safe; confirm make/model for the exact weight."
+    heavy: true
+    special: safe
+
+  # ---- Pianos & instruments ----
+  - id: piano-upright
+    category: pianos_instruments
+    rooms: [living_room, family_room, basement]
+    name: { en: "Piano, upright", ru: "Пианино" }
+    aliases: { en: [upright piano, studio piano], ru: [фортепиано] }
+    cues: "Acoustic piano with a vertical case 44–52 in tall."
+    dims: { l: [55, 62], w: [22, 26], h: [40, 52] }
+    shape: boxy
+    cuFt: 70
+    heavy: true
+    special: piano
+  - id: piano-spinet
+    category: pianos_instruments
+    rooms: [living_room, family_room, basement]
+    name: { en: "Piano, spinet / console", ru: "Пианино малое (спинет)" }
+    aliases: { en: [spinet piano, console piano], ru: [малое пианино] }
+    cues: "Acoustic piano under about 40 in tall."
+    dims: { l: [56, 60], w: [22, 24], h: [36, 40] }
+    shape: boxy
+    cuFt: 45
+    heavy: true
+    special: piano
+  - id: piano-baby-grand
+    category: pianos_instruments
+    rooms: [living_room]
+    name: { en: "Piano, baby grand", ru: "Кабинетный рояль" }
+    aliases: { en: [baby grand], ru: [рояль малый] }
+    cues: "Grand piano under about 6 ft long; moved on its side on a piano board."
+    shape: irregular
+    cuFt: 80
+    heavy: true
+    special: piano
+    disassembly: required
+    disassemblyMin: 30
+  - id: piano-grand
+    category: pianos_instruments
+    rooms: [living_room]
+    name: { en: "Piano, grand (6 ft and over)", ru: "Рояль концертный/салонный (от 180 см)" }
+    aliases: { en: [grand piano], ru: [рояль] }
+    shape: irregular
+    cuFt: 100
+    heavy: true
+    special: piano
+    disassembly: required
+    disassemblyMin: 40
+  - id: digital-piano
+    category: pianos_instruments
+    rooms: [living_room, bedroom, kids_room, office]
+    name: { en: "Digital piano / keyboard", ru: "Цифровое пианино / синтезатор" }
+    aliases: { en: [keyboard, electric piano], ru: [синтезатор] }
+    dims: { l: [52, 56], w: [12, 18], h: [30, 34] }
+    shape: irregular
+    cuFt: 12
+  - id: guitar
+    category: pianos_instruments
+    rooms: [bedroom, living_room, office]
+    name: { en: "Guitar (in case)", ru: "Гитара (в чехле)" }
+    aliases: { en: [bass guitar, violin case], ru: [бас-гитара] }
+    shape: irregular
+    cuFt: 3
+    fragile: true
+  - id: drum-set
+    category: pianos_instruments
+    rooms: [basement, garage, bedroom]
+    name: { en: "Drum set", ru: "Барабанная установка" }
+    shape: irregular
+    cuFt: 25
+    disassembly: required
+    disassemblyMin: 20

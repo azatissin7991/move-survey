@@ -1,0 +1,175 @@
+# Miscellaneous household items and standard boxes.
+# Box weights are typical packed weights, not the volume convention: small
+# boxes hold dense things (books), extra-large boxes hold light things.
+defaultSources:
+  - { field: all, ref: est-draft }
+
+items:
+  # ---- Misc ----
+  - id: aquarium
+    category: misc
+    rooms: [living_room, family_room, kids_room, office]
+    name: { en: "Aquarium, 20–55 gallon (empty)", ru: "Аквариум 75–200 л (пустой)" }
+    aliases: { en: [fish tank], ru: [аквариум] }
+    cues: "Must be drained; fish and water are not moved on the truck."
+    shape: boxy
+    cuFt: 15
+    fragile: true
+    special: aquarium
+  - id: suitcase
+    category: misc
+    rooms: [bedroom, storage, attic, hallway]
+    name: { en: "Suitcase", ru: "Чемодан" }
+    aliases: { en: [luggage, duffel bag], ru: [сумка дорожная] }
+    shape: boxy
+    cuFt: 5
+  - id: storage-tote
+    category: misc
+    rooms: [garage, basement, attic, storage, bedroom]
+    name: { en: "Plastic storage tote (lidded)", ru: "Пластиковый контейнер с крышкой" }
+    aliases: { en: [storage bin, rubbermaid bin], ru: [контейнер для хранения] }
+    cues: "Count lidded bins like boxes; most are 15–30 gallon."
+    shape: boxy
+    cuFt: 3
+  - id: vacuum
+    category: misc
+    rooms: [hallway, laundry, storage, other]
+    name: { en: "Vacuum cleaner", ru: "Пылесос" }
+    shape: irregular
+    cuFt: 3
+  - id: sewing-machine
+    category: misc
+    rooms: [office, bedroom, other]
+    name: { en: "Sewing machine (with case)", ru: "Швейная машина" }
+    shape: boxy
+    cuFt: 3
+  - id: fan-floor
+    category: misc
+    rooms: [bedroom, living_room, office, garage]
+    name: { en: "Fan / space heater / air purifier", ru: "Вентилятор / обогреватель / очиститель воздуха" }
+    shape: irregular
+    cuFt: 2
+  - id: christmas-tree
+    category: misc
+    rooms: [attic, basement, garage, storage]
+    name: { en: "Artificial Christmas tree (boxed)", ru: "Искусственная ёлка (в коробке)" }
+    shape: boxy
+    cuFt: 5
+  - id: ironing-board
+    category: misc
+    rooms: [laundry, hallway]
+    name: { en: "Ironing board", ru: "Гладильная доска" }
+    shape: flat
+    cuFt: 1.5
+  - id: pet-crate
+    category: misc
+    rooms: [family_room, bedroom, garage, kitchen]
+    name: { en: "Pet crate / cat tree", ru: "Клетка для собаки / когтеточка-домик" }
+    aliases: { en: [dog crate, cat tree, kennel], ru: [переноска] }
+    shape: irregular
+    cuFt: 6
+  - id: golf-bag
+    category: misc
+    rooms: [garage, storage]
+    name: { en: "Golf bag with clubs", ru: "Сумка для гольфа с клюшками" }
+    shape: irregular
+    cuFt: 5
+  - id: cooler
+    category: misc
+    rooms: [garage, patio, storage]
+    name: { en: "Cooler", ru: "Сумка-холодильник / кулер" }
+    shape: boxy
+    cuFt: 3
+  - id: bathroom-cabinet
+    category: misc
+    rooms: [bathroom]
+    name: { en: "Bathroom cabinet / étagère (freestanding)", ru: "Шкафчик для ванной (напольный)" }
+    shape: boxy
+    cuFt: 5
+  - id: laundry-hamper
+    category: misc
+    rooms: [bathroom, bedroom, laundry]
+    name: { en: "Laundry hamper", ru: "Корзина для белья" }
+    shape: nestable
+    cuFt: 3
+
+  # ---- Boxes ----
+  - id: box-small-1.5
+    category: boxes
+    rooms: [living_room, family_room, dining_room, kitchen, bedroom, kids_room, nursery, office, bathroom, laundry, hallway, garage, basement, attic, patio, storage, other]
+    name: { en: "Box, small (1.5 cu ft)", ru: "Коробка малая (≈42 л)" }
+    aliases: { en: [book box, small box], ru: [маленькая коробка] }
+    cues: "About 16×12×12 in; books, tools, canned food."
+    dims: { l: [16, 17], w: [12, 13], h: [12, 13] }
+    shape: boxy
+    cuFt: 1.5
+    weightLbs: 35
+    weightNote: "Used for dense contents."
+  - id: box-medium-3.0
+    category: boxes
+    rooms: [living_room, family_room, dining_room, kitchen, bedroom, kids_room, nursery, office, bathroom, laundry, hallway, garage, basement, attic, patio, storage, other]
+    name: { en: "Box, medium (3.0 cu ft)", ru: "Коробка средняя (≈85 л)" }
+    aliases: { en: [medium box, moving box], ru: [коробка, средняя коробка] }
+    cues: "About 18×18×16 in; the most common moving box."
+    dims: { l: [18, 18], w: [18, 18], h: [16, 16] }
+    shape: boxy
+    cuFt: 3
+  - id: box-large-4.5
+    category: boxes
+    rooms: [living_room, family_room, dining_room, kitchen, bedroom, kids_room, nursery, office, bathroom, laundry, hallway, garage, basement, attic, patio, storage, other]
+    name: { en: "Box, large (4.5 cu ft)", ru: "Коробка большая (≈127 л)" }
+    aliases: { en: [large box], ru: [большая коробка] }
+    cues: "About 18×18×24 in; linens, lampshades, toys."
+    dims: { l: [18, 18], w: [18, 18], h: [24, 24] }
+    shape: boxy
+    cuFt: 4.5
+    weightLbs: 30
+    weightNote: "Used for light contents."
+  - id: box-xl-6.0
+    category: boxes
+    rooms: [living_room, family_room, bedroom, kids_room, garage, basement, attic, storage, other]
+    name: { en: "Box, extra-large (6.0 cu ft)", ru: "Коробка очень большая (≈170 л)" }
+    aliases: { en: [extra large box, xl box], ru: [очень большая коробка] }
+    cues: "About 24×18×24 in; pillows, comforters."
+    dims: { l: [24, 24], w: [18, 18], h: [24, 24] }
+    shape: boxy
+    cuFt: 6
+    weightLbs: 25
+    weightNote: "Used for very light contents."
+  - id: box-dishpack
+    category: boxes
+    rooms: [kitchen, dining_room]
+    name: { en: "Dish pack (double-wall)", ru: "Коробка для посуды (двухслойная)" }
+    aliases: { en: [dish barrel, china box], ru: [коробка для посуды] }
+    dims: { l: [18, 18], w: [18, 18], h: [28, 28] }
+    shape: boxy
+    cuFt: 5.2
+    weightLbs: 50
+    weightNote: "Dishes and glass wrapped in paper; dense."
+    fragile: true
+  - id: box-wardrobe
+    category: boxes
+    rooms: [bedroom, kids_room, hallway]
+    name: { en: "Wardrobe box", ru: "Коробка-гардероб" }
+    aliases: { en: [wardrobe carton, hanging clothes box], ru: [гардеробная коробка] }
+    cues: "Tall box with a hanging bar; about 2 ft of closet rod each."
+    dims: { l: [20, 24], w: [20, 21], h: [34, 48] }
+    shape: boxy
+    cuFt: 12
+    weightLbs: 45
+    weightNote: "Hanging clothes; light for its size."
+  - id: box-tv
+    category: boxes
+    rooms: [living_room, family_room, bedroom, basement]
+    name: { en: "TV carton (packed TV)", ru: "Коробка для телевизора (с ТВ)" }
+    cues: "Only a TV already boxed by the customer; otherwise count the TV item."
+    shape: flat
+    cuFt: 10
+  - id: box-mirror
+    category: boxes
+    rooms: [living_room, dining_room, bedroom, hallway]
+    name: { en: "Mirror / picture carton", ru: "Коробка для зеркала / картины" }
+    cues: "Telescoping flat carton; only when already packed by the customer."
+    shape: flat
+    cuFt: 4
+    fragile: true
