@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "webhookUrl": {
+      "type": "string",
+      "format": "uri"
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "captureMode": {
+          "type": "string",
+          "enum": [
+            "walkthrough",
+            "rooms"
+          ],
+          "description": "One walk-through, or room by room"
+        },
+        "autoApprove": {
+          "type": "boolean",
+          "description": "Confident surveys skip review and go straight to the CRM"
+        },
+        "customerSummary": {
+          "type": "boolean",
+          "description": "Show the customer their approved inventory on the survey link"
+        },
+        "retentionDays": {
+          "type": "integer",
+          "minimum": 7,
+          "maximum": 3650,
+          "description": "Videos are deleted this many days after the survey"
+        }
+      }
+    }
+  }
+}

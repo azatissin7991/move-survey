@@ -1,6 +1,7 @@
 {
   "crons": [
     { "path": "/api/cron/pipeline", "schedule": "* * * * *" },
-    { "path": "/api/cron/webhooks", "schedule": "* * * * *" }
+    { "path": "/api/cron/webhooks", "schedule": "* * * * *" },
+    { "path": "/api/cron/upkeep", "schedule": "17 * * * *" }
   ]
 }

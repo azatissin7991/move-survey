@@ -5,26 +5,25 @@ import { localStorageFiles } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
-const MAX_CHUNK_BYTES = 20 * 1024 * 1024;
-
 function guard(request: Request, mode: "put" | "get") {
   if (process.env.STORAGE_DRIVER === "r2") return { error: NextResponse.json({ error: "Not found" }, { status: 404 }) };
   const url = new URL(request.url);
   const key = url.searchParams.get("key") ?? "";
   const token = url.searchParams.get("token") ?? "";
-  if (!localStorageFiles.verify(mode, key, token)) {
+  // Uploads are signed for an exact size, like R2's signed Content-Length.
+  const size = Number(url.searchParams.get("size"));
+  const signed = mode === "put" ? `put:${key}:${size}` : `get:${key}`;
+  if (!localStorageFiles.verify(signed, key, token)) {
     return { error: NextResponse.json({ error: "Bad or expired signature" }, { status: 403 }) };
   }
-  return { key };
+  return { key, size };
 }
 
 export async function PUT(request: Request) {
   const g = guard(request, "put");
   if ("error" in g) return g.error;
   const data = new Uint8Array(await request.arrayBuffer());
-  if (data.byteLength === 0 || data.byteLength > MAX_CHUNK_BYTES) {
-    return NextResponse.json({ error: "Chunk size out of range" }, { status: 413 });
-  }
+  if (data.byteLength !== g.size) return NextResponse.json({ error: "Size doesn't match the signed size" }, { status: 403 });
   await localStorageFiles.write(g.key, data);
   return new NextResponse(null, { status: 200 });
 }

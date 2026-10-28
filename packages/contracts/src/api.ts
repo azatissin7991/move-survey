@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import { ROOM_TYPES } from "@move-survey/catalog";
-import { LANGUAGES, SURVEY_STATUSES } from "./survey";
+import { CAPTURE_MODES, LANGUAGES, SURVEY_STATUSES } from "./survey";
 
 export const createSurveyRequestSchema = z.object({
   externalRef: z.string().min(1).max(200).describe("The CRM's id for this quote/job"),
@@ -91,6 +91,27 @@ export const outcomeRequestSchema = z.object({
   weighTicketLbs: z.number().int().positive().nullable(),
 });
 export type OutcomeRequest = z.infer<typeof outcomeRequestSchema>;
+
+/** A signed page link for one CRM user: the estimator's review or the crew's move-day checklist. */
+export const linkRequestSchema = z.object({ userName: z.string().min(1).max(100) });
+
+/** Per-company switches, changed by the CRM through `PATCH /settings`. */
+export const tenantSettingsSchema = z.object({
+  captureMode: z.enum(CAPTURE_MODES).describe("One walk-through, or room by room"),
+  autoApprove: z.boolean().describe("Confident surveys skip review and go straight to the CRM"),
+  customerSummary: z.boolean().describe("Show the customer their approved inventory on the survey link"),
+  retentionDays: z.number().int().min(7).max(3650).describe("Videos are deleted this many days after the survey"),
+});
+export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
+export const TENANT_DEFAULTS: TenantSettings = { captureMode: "walkthrough", autoApprove: false, customerSummary: false, retentionDays: 90 };
+
+export const settingsResponseSchema = z.object({ name: z.string(), webhookUrl: z.string(), settings: tenantSettingsSchema });
+export const settingsUpdateSchema = z.object({
+  webhookUrl: z.string().url().optional(),
+  settings: tenantSettingsSchema.partial().optional(),
+});
+export type SettingsResponse = z.infer<typeof settingsResponseSchema>;
+export type SettingsUpdate = z.infer<typeof settingsUpdateSchema>;
 
 export const WEBHOOK_EVENTS = [
   "survey.started",

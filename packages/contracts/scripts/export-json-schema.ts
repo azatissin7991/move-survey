@@ -12,6 +12,7 @@ import {
   inventoryResponseSchema,
   outcomeRequestSchema,
   inventoryDraftSchema,
+  settingsUpdateSchema,
   webhookPayloadSchema,
 } from "../src";
 
@@ -21,6 +22,7 @@ const schemas = {
   "inventory-response": inventoryResponseSchema,
   "outcome-request": outcomeRequestSchema,
   "webhook-payload": webhookPayloadSchema,
+  "settings-update": settingsUpdateSchema,
 };
 
 const dist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist");

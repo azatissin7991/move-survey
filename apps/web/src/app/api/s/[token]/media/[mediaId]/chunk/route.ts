@@ -20,6 +20,7 @@ export async function POST(
   const body = await parseBody(request, chunkRequestSchema);
   if ("response" in body) return body.response;
 
-  const url = await getStorage().presignPut(chunkKey(media.storagePrefix, body.data.index), media.contentType, 15 * 60);
+  const { index, size } = body.data;
+  const url = await getStorage().presignPut(chunkKey(media.storagePrefix, index), media.contentType, size, 15 * 60);
   return NextResponse.json({ url });
 }

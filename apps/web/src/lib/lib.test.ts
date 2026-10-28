@@ -9,7 +9,7 @@ import {
   verifySignedValue,
 } from "./crypto";
 import { canRecord, canTransition, canUpload } from "./state";
-import { tenantSettings } from "./customer";
+import { tenantSettings } from "./tenant";
 import { backoffMinutes } from "./webhooks";
 import { actualCuFt } from "./inventory";
 import { chunkKey, isValidKey, mediaPrefix } from "./storage";
@@ -36,11 +36,12 @@ describe("state", () => {
 });
 
 describe("tenant settings", () => {
+  const defaults = { captureMode: "walkthrough", autoApprove: false, customerSummary: false, retentionDays: 90 };
   it("defaults to a walk-through without auto-approve, and ignores junk", () => {
-    expect(tenantSettings({})).toEqual({ captureMode: "walkthrough", autoApprove: false });
-    expect(tenantSettings(null)).toEqual({ captureMode: "walkthrough", autoApprove: false });
-    expect(tenantSettings({ captureMode: "rooms", autoApprove: true })).toEqual({ captureMode: "rooms", autoApprove: true });
-    expect(tenantSettings({ captureMode: "nonsense", autoApprove: "yes" })).toEqual({ captureMode: "walkthrough", autoApprove: false });
+    expect(tenantSettings({})).toEqual(defaults);
+    expect(tenantSettings(null)).toEqual(defaults);
+    expect(tenantSettings({ captureMode: "rooms", autoApprove: true, retentionDays: 30 })).toEqual({ ...defaults, captureMode: "rooms", autoApprove: true, retentionDays: 30 });
+    expect(tenantSettings({ captureMode: "nonsense", autoApprove: "yes", retentionDays: 1 })).toEqual(defaults);
   });
 });
 

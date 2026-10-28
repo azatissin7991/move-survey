@@ -63,6 +63,9 @@ model Survey {
   totals         Json? // contracts Totals
   suggestions    Json? // contracts Suggestions
   coverageGaps   Json      @default("[]") // ["Bedroom: closet not opened", …] shown to the reviewer
+  // The crew's move-day check of the inventory: item-level truth for accuracy checks.
+  // { by, at, items: [{ catalogId, name, roomLabel, cuFtEach, quantity, surveyed }] }
+  checklist      Json?
   expiresAt      DateTime
   startedAt      DateTime?
   finishedAt     DateTime?
@@ -112,8 +115,8 @@ model Media {
   storagePrefix String     @unique
   chunkCount    Int        @default(0)
   sizeBytes     Int?
-  durationMs    Int?
-  status        String     @default("UPLOADING") // UPLOADING | COMPLETE
+  durationMs    Int? // 0 for an uploaded file (its chunks are byte slices, not timed)
+  status        String     @default("UPLOADING") // UPLOADING | COMPLETE | DELETED (retention)
   createdAt     DateTime   @default(now())
 
   frames Frame[]
@@ -223,4 +226,13 @@ model WebhookDelivery {
   createdAt     DateTime  @default(now())
 
   @@index([status, nextAttemptAt])
+}
+
+// Fixed-window request counters for the public links (one row per key per minute).
+model RateLimit {
+  key    String
+  window DateTime
+  count  Int      @default(1)
+
+  @@id([key, window])
 }

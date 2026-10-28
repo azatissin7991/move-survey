@@ -10,7 +10,7 @@
 import type { InventoryDraft } from "@move-survey/contracts";
 import type { Prisma } from "@prisma/client";
 import { db } from "./db";
-import { tenantSettings } from "./customer";
+import { tenantSettings } from "./tenant";
 import { confidentEnough, draftToLines, suggestionsFor, totalsFor } from "./estimate";
 import { chunkKey, getStorage, type Storage } from "./storage";
 import { enqueueWebhook } from "./webhooks";

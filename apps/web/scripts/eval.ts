@@ -1,21 +1,27 @@
-// Score surveys against verified inventories ("golden homes").
+// Score surveys against verified inventories.
 //
-//   npx tsx scripts/eval.ts [--split test] [--rerun] [--min-in-range 0.8]
+//   npx tsx scripts/eval.ts [--split test|dev|move-day] [--rerun] [--min-in-range 0.8]
 //
-// Golden files live in eval/golden/*.json (see eval/golden/README.md). With
-// --rerun, each home's analysis runs again with the current prompt, model and
-// catalog before scoring: the regression check for any change to those.
+// Truth comes from two places:
+//  - golden homes, eval/golden/*.json (see eval/golden/README.md), split dev/test;
+//  - crew move-day checklists saved on surveys (split "move-day"): real jobs
+//    no prompt was tuned on.
+// With --rerun, each home's analysis runs again with the current prompt, model
+// and catalog before scoring: the regression check for any change to those.
 // Exits non-zero if --min-in-range is given and not met.
 
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { Totals } from "@move-survey/contracts";
+import { Prisma } from "@prisma/client";
+import type { Checklist } from "../src/lib/checklist";
 import { db } from "../src/lib/db";
 import { catalogItem } from "../src/lib/estimate";
 import { formatSummary, score, summarize, type Counted } from "../src/lib/metrics";
 import { runPipeline } from "../src/lib/pipeline";
 
 type Golden = { surveyId: string; split: "dev" | "test"; truth: Counted[]; note?: string };
+type Home = { surveyId: string; split: string; truth: Counted[]; truthCuFt: number };
 
 const GOLDEN_DIR = path.resolve(process.cwd(), "../../eval/golden");
 
@@ -40,14 +46,11 @@ async function rerun(surveyId: string) {
 async function main() {
   const split = arg("split");
   const minInRange = arg("min-in-range");
-  const goldens: Golden[] = readdirSync(GOLDEN_DIR)
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => JSON.parse(readFileSync(path.join(GOLDEN_DIR, f), "utf8")) as Golden)
-    .filter((g) => !split || g.split === split);
-  if (goldens.length === 0) return console.log(`No golden homes in ${GOLDEN_DIR}${split ? ` for split ${split}` : ""}.`);
+  const homes = (await loadHomes()).filter((g) => !split || g.split === split);
+  if (homes.length === 0) return console.log(`No verified homes${split ? ` for split ${split}` : ""} (golden files in ${GOLDEN_DIR}, or crew checklists).`);
 
   const scores = [];
-  for (const g of goldens) {
+  for (const g of homes) {
     if (process.argv.includes("--rerun")) await rerun(g.surveyId);
     const survey = await db.survey.findUnique({ where: { id: g.surveyId }, include: { detections: true } });
     if (!survey?.totals) {
@@ -57,7 +60,7 @@ async function main() {
     const predicted = survey.detections
       .filter((d) => d.moving && d.catalogItemId)
       .map((d) => ({ catalogId: d.catalogItemId!, quantity: d.quantity }));
-    const truthCuFt = g.truth.reduce((sum, t) => sum + (catalogItem(t.catalogId)?.cuFt ?? 0) * t.quantity, 0);
+    const { truthCuFt } = g;
     const s = score(predicted, g.truth, survey.totals as Totals, truthCuFt);
     scores.push(s);
     const t = survey.totals as Totals;
@@ -72,6 +75,27 @@ async function main() {
     console.error(`Truth in range ${summary.inRange.toFixed(2)} is below ${minInRange}`);
     process.exitCode = 1;
   }
+}
+
+async function loadHomes(): Promise<Home[]> {
+  const golden: Home[] = readdirSync(GOLDEN_DIR)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => JSON.parse(readFileSync(path.join(GOLDEN_DIR, f), "utf8")) as Golden)
+    .map((g) => ({ ...g, truthCuFt: g.truth.reduce((sum, t) => sum + (catalogItem(t.catalogId)?.cuFt ?? 0) * t.quantity, 0) }));
+  const goldenIds = new Set(golden.map((g) => g.surveyId));
+  const checked = await db.survey.findMany({ where: { checklist: { not: Prisma.DbNull } }, select: { id: true, checklist: true } });
+  const moveDay: Home[] = checked
+    .filter((s) => !goldenIds.has(s.id))
+    .map((s) => {
+      const items = (s.checklist as unknown as Checklist).items;
+      return {
+        surveyId: s.id,
+        split: "move-day",
+        truth: items.filter((i) => i.catalogId && i.quantity > 0).map((i) => ({ catalogId: i.catalogId!, quantity: i.quantity })),
+        truthCuFt: items.reduce((sum, i) => sum + i.cuFtEach * i.quantity, 0),
+      };
+    });
+  return [...golden, ...moveDay];
 }
 
 main().finally(() => db.$disconnect());

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import type { Suggestions, Totals } from "@move-survey/contracts";
 import type { ReviewAuth } from "@/lib/review";
 import { addLine, approve, updateLine } from "@/app/review/[id]/actions";
+import { EvidenceViewer, type Evidence } from "./evidence-viewer";
 
 export type ReviewLine = {
   id: string;
@@ -21,6 +22,7 @@ export type ReviewLine = {
   note: string;
   flags: string[];
   thumb: string | null;
+  frameId: string | null;
 };
 
 const fmt = (n: number) => n.toLocaleString("en-US");
@@ -47,7 +49,7 @@ export function ReviewApp({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const [zoom, setZoom] = useState<string | null>(null);
+  const [zoom, setZoom] = useState<Evidence | null>(null);
   const rooms = useMemo(() => [...new Set(lines.map((l) => l.room))], [lines]);
   const query = new URLSearchParams({ u: auth.user, t: auth.token }).toString();
   const approved = status === "APPROVED";
@@ -87,8 +89,8 @@ export function ReviewApp({
           <ul>
             {lines.filter((l) => l.room === room).map((l) => (
               <li key={l.id} className={`flex items-center gap-3 px-4 py-2 ${l.moving ? "" : "opacity-40"}`}>
-                {l.thumb ? (
-                  <button type="button" onClick={() => setZoom(l.thumb)} className="shrink-0">
+                {l.thumb && l.frameId ? (
+                  <button type="button" onClick={() => setZoom({ thumb: l.thumb!, frameId: l.frameId! })} className="shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={l.thumb} alt="" className="h-12 w-16 rounded object-cover" />
                   </button>
@@ -136,12 +138,7 @@ export function ReviewApp({
         </div>
       </footer>
 
-      {zoom && (
-        <button type="button" onClick={() => setZoom(null)} className="fixed inset-0 z-30 flex items-center justify-center bg-black/80 p-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={zoom} alt="" className="max-h-full max-w-full rounded-lg" />
-        </button>
-      )}
+      {zoom && <EvidenceViewer key={zoom.frameId} auth={auth} evidence={zoom} onClose={() => setZoom(null)} />}
     </main>
   );
 }

@@ -44,10 +44,35 @@ widens instead.
      - crew, trucks and hours are suggested.
 4. **Review** (`/review/<id>`, a 12-hour signed link minted by the CRM): one
    tap to approve; optional quantity, not-moving and add-item edits (each one is
-   logged as a correction); CSV; printable page for PDF. With `autoApprove` in
-   the tenant settings, confident surveys skip review.
+   logged as a correction); evidence stills that play the video around that
+   moment; CSV; printable page for PDF. With `autoApprove` in the tenant
+   settings, confident surveys skip review.
 5. **CRM** gets a thin signed webhook, fetches `/inventory` and applies it.
-   After the move it sends the crew's load report back (`PUT /outcome`).
+   With `customerSummary` on, the customer's link then shows the approved list.
+6. **Move day:** the crew opens the inventory as a checklist (`/check/<id>`,
+   EN/RU, minted from the CRM job), fixes counts and adds what was missed.
+   After the move the CRM sends the load report back (`PUT /outcome`).
+7. **Upkeep** (hourly): recordings nobody finished are processed after 6 hours,
+   unused links expire, and media is deleted after the company's retention
+   window (stills are kept only with the customer's consent).
+
+Public links are rate-limited per link, and every upload URL is signed for an
+exact size.
+
+## API v1
+
+All calls take `Authorization: Bearer msk_…`. Schemas are in `packages/contracts`.
+
+| Call | What |
+| --- | --- |
+| `POST /api/v1/surveys` | create a survey; returns the customer link |
+| `GET /api/v1/surveys/<id>` | status, revision, totals, suggestions |
+| `GET /api/v1/surveys/<id>/inventory` | the published inventory (`?format=csv` for a spreadsheet) |
+| `POST /api/v1/surveys/<id>/review-link` | 12-hour review link for a user |
+| `POST /api/v1/surveys/<id>/checklist-link` | 12-hour move-day checklist link for a crew member |
+| `PUT /api/v1/surveys/<id>/outcome` | job actuals after the move (upsert) |
+| `POST /api/v1/surveys/<id>/cancel` | cancel |
+| `GET`, `PATCH /api/v1/settings` | the company's settings and webhook URL |
 
 ## Run locally
 
@@ -74,17 +99,18 @@ Without an API key, `npx tsx scripts/dev-fake-analysis.ts <surveyId>` (in
 ```bash
 cd apps/web
 npx tsx scripts/eval.ts --split test            # score golden homes
+npx tsx scripts/eval.ts --split move-day        # score against crew move-day checklists
 npx tsx scripts/eval.ts --split test --rerun    # re-analyze first (after a prompt/model/catalog change)
-npx tsx scripts/calibration.ts                  # estimates vs loaded truck volume from CRM outcomes
+npx tsx scripts/calibration.ts                  # estimates vs loaded truck volume, and what the catalog missed
 ```
 
 ## Deploy (Vercel)
 
 - **Project:** one Vercel project for `apps/web`, with Neon Postgres (`DATABASE_URL` pooled, `DIRECT_URL` direct).
-- **Storage:** a private Cloudflare R2 bucket (`STORAGE_DRIVER=r2` plus the `R2_*` vars). Its CORS must allow PUT from the app's origin and expose `ETag`.
+- **Storage:** a private Cloudflare R2 bucket (`STORAGE_DRIVER=r2` plus the `R2_*` vars). Its CORS must allow PUT and GET from the app's origin (uploads, and review video playback) and expose `ETag`.
 - **Secrets:** `APP_URL`, `APP_SECRET`, `ANTHROPIC_API_KEY`, optionally `GEMINI_API_KEY`, and `CRON_SECRET`.
-- **Crons** (`apps/web/vercel.json`): `/api/cron/pipeline` and `/api/cron/webhooks` every minute, which needs the Pro plan.
-- **Companies:** one tenant per company, created with `tenant:create`. Settings JSON on the tenant: `{ "captureMode": "walkthrough" | "rooms", "autoApprove": true | false }`.
+- **Crons** (`apps/web/vercel.json`): `/api/cron/pipeline` and `/api/cron/webhooks` every minute (needs the Pro plan), `/api/cron/upkeep` hourly.
+- **Companies:** one tenant per company, created with `tenant:create`. Its settings (`captureMode`, `autoApprove`, `customerSummary`, `retentionDays`) are changed through `PATCH /api/v1/settings`, which the CRM's Settings → Video survey tab calls.
 
 ```bash
 npm test          # all workspaces

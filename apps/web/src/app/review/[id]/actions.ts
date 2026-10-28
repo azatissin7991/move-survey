@@ -8,7 +8,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { catalogItem, snapshotFor } from "@/lib/estimate";
-import { recompute, reviewAllowed, type ReviewAuth } from "@/lib/review";
+import { clipChunks, recompute, reviewAllowed, type ReviewAuth } from "@/lib/review";
+import { chunkKey, getStorage } from "@/lib/storage";
 import { enqueueWebhook } from "@/lib/webhooks";
 
 const EDITABLE = ["READY_FOR_REVIEW", "APPROVED"];
@@ -94,4 +95,19 @@ export async function approve(auth: ReviewAuth) {
     await enqueueWebhook(tx, updated, "survey.approved");
   });
   revalidatePath(`/review/${survey.id}`);
+}
+
+export type Clip = { contentType: string; urls: string[]; seekSec: number };
+
+/** The video around one evidence still, or null if there is none (not recorded, or deleted). */
+export async function videoClip(auth: ReviewAuth, frameId: string): Promise<Clip | null> {
+  if (!reviewAllowed(auth)) throw new Error("This review link has expired. Open it again from the CRM.");
+  const frame = await db.frame.findFirst({ where: { id: frameId, surveyId: auth.surveyId } });
+  if (!frame) return null;
+  const video = await db.media.findFirst({ where: { roomId: frame.roomId, kind: "VIDEO", status: "COMPLETE", chunkCount: { gt: 0 } } });
+  if (!video) return null;
+  const { indices, seekSec } = clipChunks(video.chunkCount, (video.durationMs ?? 0) > 0, frame.tMs);
+  const storage = getStorage();
+  const urls = await Promise.all(indices.map((i) => storage.presignGet(chunkKey(video.storagePrefix, i), 600)));
+  return { contentType: video.contentType, urls, seekSec };
 }

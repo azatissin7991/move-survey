@@ -126,6 +126,7 @@ class UploadQueue {
       try {
         const { url } = await postJson<{ url: string }>(`/api/s/${chunk.token}/media/${chunk.mediaId}/chunk`, {
           index: chunk.index,
+          size: chunk.blob.size,
         });
         const put = await fetch(url, { method: "PUT", body: chunk.blob, headers: { "content-type": chunk.blob.type || "application/octet-stream" } });
         if (!put.ok) throw Object.assign(new Error(`upload HTTP ${put.status}`), { status: put.status });

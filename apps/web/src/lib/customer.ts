@@ -4,13 +4,19 @@
 
 import { z } from "zod";
 import { ROOM_TYPES } from "@move-survey/catalog";
-import { CAPTURE_MODES, LANGUAGES, type SurveyStatus } from "@move-survey/contracts";
+import { LANGUAGES, type SurveyStatus } from "@move-survey/contracts";
 import { jsonError } from "./api-auth";
+import { rateLimited } from "./rate-limit";
 import { canRecord, canUpload } from "./state";
 import { surveyForToken } from "./surveys";
 
+// A recording makes ~90 requests a minute (three streams of 2 s chunks); this
+// leaves room for a backlog draining after the phone comes back online.
+const REQUESTS_PER_MINUTE = 600;
+
 /** The survey behind a link if `allowed(status)`, else an error response. */
 export async function linkedSurvey(token: string, allowed: (s: SurveyStatus) => boolean) {
+  if (await rateLimited(`s:${token}`, REQUESTS_PER_MINUTE)) return { response: jsonError(429, "Too many requests, slow down.") };
   const survey = await surveyForToken(token);
   if (!survey) return { response: jsonError(404, "This link has expired or doesn't exist.") };
   if (!allowed(survey.status as SurveyStatus)) return { response: jsonError(409, "This survey is closed.") };
@@ -19,17 +25,6 @@ export async function linkedSurvey(token: string, allowed: (s: SurveyStatus) => 
 
 export const recordable = (token: string) => linkedSurvey(token, canRecord);
 export const uploadable = (token: string) => linkedSurvey(token, canUpload);
-
-/** Per-company switches, stored as JSON on the tenant. Bad values fall back to defaults. */
-const tenantSettingsSchema = z.object({
-  captureMode: z.enum(CAPTURE_MODES).catch("walkthrough"),
-  // Confident surveys skip review and go straight to the CRM.
-  autoApprove: z.boolean().catch(false),
-});
-export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
-export function tenantSettings(settings: unknown): TenantSettings {
-  return tenantSettingsSchema.parse(settings && typeof settings === "object" ? settings : {});
-}
 
 export const startRequestSchema = z.object({
   language: z.enum(LANGUAGES),
@@ -50,7 +45,14 @@ export const segmentRequestSchema = z.object({
 
 export const MAX_CHUNKS = 1500; // 50 min at 2 s chunks; a whole home is 5–15 min
 
-export const chunkRequestSchema = z.object({ index: z.number().int().min(0).max(MAX_CHUNKS - 1) });
+// Recorded chunks are ~1 MB; uploaded files are sliced into 8 MB parts.
+export const MAX_CHUNK_BYTES = 9 * 1024 * 1024;
+
+export const chunkRequestSchema = z.object({
+  index: z.number().int().min(0).max(MAX_CHUNKS - 1),
+  // Signed into the upload URL, so storage refuses anything bigger.
+  size: z.number().int().min(1).max(MAX_CHUNK_BYTES),
+});
 
 export const completeRequestSchema = z.object({
   chunkCount: z.number().int().min(0).max(MAX_CHUNKS), // 0: a very short segment kept no frames

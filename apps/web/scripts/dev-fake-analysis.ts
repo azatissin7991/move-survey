@@ -17,6 +17,7 @@ async function main(surveyId: string) {
     transcribe: async () => "the piano stays",
     analyze: async ({ frames, draft }) => {
       const first = frames[0]!.label;
+      const middle = frames[Math.floor(frames.length / 2)]!.label; // evidence later in the video
       const next: InventoryDraft = {
         rooms: [{ label: "Living room", roomType: "living_room", fullness: "average", coverageGaps: ["closet not opened"] }],
         items: [
@@ -26,7 +27,7 @@ async function main(surveyId: string) {
             : [
                 { catalogId: "sofa-3-seat", customLabel: null, room: "Living room", quantity: 1, confidence: 0.9, frameIds: [first], notMoving: false, approxDims: null, note: null },
                 { catalogId: "piano-upright", customLabel: null, room: "Living room", quantity: 1, confidence: 0.85, frameIds: [first], notMoving: true, approxDims: null, note: "customer says it stays" },
-                { catalogId: "tv-medium", customLabel: null, room: "Living room", quantity: 1, confidence: 0.55, frameIds: [first], notMoving: false, approxDims: null, note: "wall-mounted" },
+                { catalogId: "tv-medium", customLabel: null, room: "Living room", quantity: 1, confidence: 0.55, frameIds: [middle], notMoving: false, approxDims: null, note: "wall-mounted" },
               ]),
         ],
       };

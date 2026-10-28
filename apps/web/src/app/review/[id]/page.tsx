@@ -48,6 +48,7 @@ export default async function ReviewPage({
       note: d.note,
       flags: s.flags,
       thumb: thumbs.get((d.frameIds as string[])[0] ?? "") ?? null,
+      frameId: (d.frameIds as string[])[0] ?? null,
     };
   });
 
