@@ -1,5 +1,6 @@
 // API v1 authentication and JSON helpers for route handlers.
 
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 import { db } from "./db";
@@ -49,4 +50,13 @@ export async function parseBody<T extends z.ZodType>(
     };
   }
   return { data: parsed.data };
+}
+
+/** Vercel cron requests carry `Authorization: Bearer $CRON_SECRET`. */
+export function cronAuthorized(request: Request): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) return false;
+  const given = Buffer.from(request.headers.get("authorization") ?? "");
+  const expected = Buffer.from(`Bearer ${secret}`);
+  return given.length === expected.length && timingSafeEqual(given, expected);
 }

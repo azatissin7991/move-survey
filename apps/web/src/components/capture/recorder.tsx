@@ -1,31 +1,38 @@
 "use client";
 
-// One recording screen for the whole survey. A walk-through is a single
-// recording; "Next room" just starts a new segment so rooms are easier to
-// tell apart. Room-by-room mode asks which room before each segment. Every
-// segment is a MediaRecorder emitting 2 s chunks into the upload queue.
+// One recording screen for the whole survey. Each segment (the walk-through,
+// a part after "Next room", or a room in room-by-room mode) records three
+// streams into the upload queue:
+//   VIDEO   2 s chunks, kept for the reviewer
+//   FRAMES  sharp, distinct JPEG stills picked once a second: what the AI reads
+//   AUDIO   the narration ("this stays"), transcribed for the AI
 
 import { useEffect, useRef, useState } from "react";
 import type { RoomType } from "@move-survey/catalog";
 import type { CaptureMode } from "@move-survey/contracts";
 import type { Dict } from "@/lib/i18n";
+import { change, frameFromImageFile, framesFromVideoFile, MIN_CHANGE, MIN_SHARPNESS, probe, snapshot } from "./frames";
 import { postJson, uploadQueue } from "./upload-queue";
 
 const TIMESLICE_MS = 2_000;
 const FILE_CHUNK_BYTES = 8 * 1024 * 1024;
-const MIME_CANDIDATES = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"];
+const VIDEO_TYPES = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm"];
+const AUDIO_TYPES = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
 
 type Phase = "ready" | "picking" | "recording" | "paused" | "error";
-type Segment = { mediaId: string; index: number; bytes: number; startedAt: number };
+type Stream = { mediaId: string; index: number; bytes: number };
+type Segment = { startedAt: number; video: Stream; frames: Stream; audio?: Stream };
+type SegmentIds = { label: string; media: { VIDEO?: string; FRAMES: string; AUDIO?: string } };
 
-const pickMime = () => MIME_CANDIDATES.find((m) => MediaRecorder.isTypeSupported(m)) ?? null;
+const supported = (types: string[]) => types.find((m) => MediaRecorder.isTypeSupported(m)) ?? null;
+const base = (mime: string) => mime.split(";")[0]!;
+const stream = (mediaId: string): Stream => ({ mediaId, index: 0, bytes: 0 });
 
 export function Recorder({ token, mode, t, onDone }: { token: string; mode: CaptureMode; t: Dict; onDone: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
+  const cameraRef = useRef<MediaStream | null>(null);
+  const recordersRef = useRef<MediaRecorder[]>([]);
   const segmentRef = useRef<Segment | null>(null);
-  const stoppedRef = useRef<(() => void) | null>(null);
   const [phase, setPhase] = useState<Phase>("ready");
   const [label, setLabel] = useState("");
   const [seconds, setSeconds] = useState(0);
@@ -37,87 +44,95 @@ export function Recorder({ token, mode, t, onDone }: { token: string; mode: Capt
     navigator.mediaDevices
       ?.getUserMedia({
         video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: true, // narration: "this stays", "closet is full of boxes"
+        audio: true,
       })
-      .then((stream) => {
-        if (cancelled) return stream.getTracks().forEach((tr) => tr.stop());
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
+      .then((camera) => {
+        if (cancelled) return camera.getTracks().forEach((tr) => tr.stop());
+        cameraRef.current = camera;
+        if (videoRef.current) videoRef.current.srcObject = camera;
       })
       .catch(() => !cancelled && setPhase("error"));
     return () => {
       cancelled = true;
-      streamRef.current?.getTracks().forEach((tr) => tr.stop());
+      cameraRef.current?.getTracks().forEach((tr) => tr.stop());
     };
   }, []);
 
-  // Once a second while recording: timer, and nudges for darkness and fast panning.
+  // Once a second while recording: timer, nudges, and maybe a frame for the AI.
   useEffect(() => {
     if (phase !== "recording") return;
-    const canvas = Object.assign(document.createElement("canvas"), { width: 32, height: 18 });
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const canvas = Object.assign(document.createElement("canvas"), { width: 160, height: 90 });
+    let lastKept: Float32Array | null = null;
     let previous: Float32Array | null = null;
     let dark = 0;
     let fast = 0;
-    const id = setInterval(() => {
+    const id = setInterval(async () => {
       setSeconds((s) => s + 1);
-      if (!ctx || !videoRef.current) return;
-      ctx.drawImage(videoRef.current, 0, 0, 32, 18);
-      const px = ctx.getImageData(0, 0, 32, 18).data;
-      const luma = new Float32Array(px.length / 4);
-      for (let i = 0; i < luma.length; i++) luma[i] = 0.2126 * px[i * 4]! + 0.7152 * px[i * 4 + 1]! + 0.0722 * px[i * 4 + 2]!;
-      const mean = luma.reduce((a, b) => a + b, 0) / luma.length;
-      const change = previous ? luma.reduce((a, v, i) => a + Math.abs(v - previous![i]!), 0) / luma.length : 0;
-      previous = luma;
-      dark = mean < 45 ? dark + 1 : 0;
-      fast = change > 40 ? fast + 1 : 0;
+      const video = videoRef.current;
+      const seg = segmentRef.current;
+      if (!video || !seg) return;
+      const p = probe(video, canvas);
+      dark = p.brightness < 45 ? dark + 1 : 0;
+      fast = previous && change(p.luma, previous) > 40 ? fast + 1 : 0;
+      previous = p.luma;
       setNudge(dark >= 3 ? t.tooDark : fast >= 2 ? t.tooFast : "");
+
+      if (p.sharpness < MIN_SHARPNESS || (lastKept && change(p.luma, lastKept) < MIN_CHANGE)) return;
+      lastKept = p.luma;
+      const blob = await snapshot(video);
+      if (!blob || segmentRef.current !== seg) return;
+      const tMs = Date.now() - seg.startedAt;
+      seg.frames.bytes += blob.size;
+      await uploadQueue().addChunk(token, seg.frames.mediaId, seg.frames.index++, blob, tMs);
     }, 1_000);
     return () => clearInterval(id);
-  }, [phase, t.tooDark, t.tooFast]);
+  }, [phase, token, t.tooDark, t.tooFast]);
 
   // iOS stops the camera when the page is hidden: close the segment cleanly.
   useEffect(() => {
     const onHide = () => {
-      if (document.visibilityState === "hidden" && recorderRef.current?.state === "recording") {
-        void stopSegment().then(() => setPhase("paused"));
-      }
+      if (document.visibilityState === "hidden" && segmentRef.current) void stopSegment().then(() => setPhase("paused"));
     };
     document.addEventListener("visibilitychange", onHide);
     return () => document.removeEventListener("visibilitychange", onHide);
   });
 
+  function record(source: MediaStream, mimeType: string, target: Stream, bitsPerSecond: number): MediaRecorder {
+    const recorder = new MediaRecorder(source, { mimeType, bitsPerSecond });
+    recorder.ondataavailable = (e) => {
+      if (e.data.size === 0) return;
+      target.bytes += e.data.size;
+      void uploadQueue().addChunk(token, target.mediaId, target.index++, e.data);
+    };
+    recorder.start(TIMESLICE_MS);
+    return recorder;
+  }
+
   async function startSegment(roomType?: RoomType) {
-    const stream = streamRef.current;
-    const mime = pickMime();
-    if (!stream || !mime) return setPhase("error");
+    const camera = cameraRef.current;
+    const videoType = supported(VIDEO_TYPES);
+    if (!camera || !videoType) return setPhase("error");
+    const audioType = camera.getAudioTracks().length ? supported(AUDIO_TYPES) : null;
     setBusy(true);
     try {
-      const seg = await postJson<{ mediaId: string; label: string }>(`/api/s/${token}/segments`, {
-        kind: "VIDEO",
-        contentType: mime.split(";")[0],
+      const ids = await postJson<SegmentIds>(`/api/s/${token}/segments`, {
         roomType,
+        streams: { VIDEO: base(videoType), FRAMES: "image/jpeg", ...(audioType ? { AUDIO: base(audioType) } : {}) },
       });
       const queue = uploadQueue();
-      await queue.beginMedia(token, seg.mediaId);
-      segmentRef.current = { mediaId: seg.mediaId, index: 0, bytes: 0, startedAt: Date.now() };
-      const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_500_000 });
-      recorder.ondataavailable = (e) => {
-        const s = segmentRef.current;
-        if (!s || e.data.size === 0) return;
-        s.bytes += e.data.size;
-        void queue.addChunk(token, s.mediaId, s.index++, e.data);
+      for (const id of Object.values(ids.media)) await queue.beginMedia(token, id);
+      const seg: Segment = {
+        startedAt: Date.now(),
+        video: stream(ids.media.VIDEO!),
+        frames: stream(ids.media.FRAMES),
+        audio: ids.media.AUDIO ? stream(ids.media.AUDIO) : undefined,
       };
-      // onstop fires after the last dataavailable, so the chunk count is final.
-      recorder.onstop = () => {
-        const s = segmentRef.current;
-        if (s) void queue.endMedia(s.mediaId, s.index, Date.now() - s.startedAt, s.bytes);
-        segmentRef.current = null;
-        stoppedRef.current?.();
-      };
-      recorderRef.current = recorder;
-      recorder.start(TIMESLICE_MS);
-      setLabel(seg.label);
+      recordersRef.current = [record(camera, videoType, seg.video, 4_500_000)];
+      if (audioType && seg.audio) {
+        recordersRef.current.push(record(new MediaStream(camera.getAudioTracks()), audioType, seg.audio, 64_000));
+      }
+      segmentRef.current = seg;
+      setLabel(ids.label);
       setPhase("recording");
     } catch {
       setNudge(t.error);
@@ -126,13 +141,27 @@ export function Recorder({ token, mode, t, onDone }: { token: string; mode: Capt
     }
   }
 
-  function stopSegment(): Promise<void> {
-    const recorder = recorderRef.current;
-    if (!recorder || recorder.state !== "recording") return Promise.resolve();
-    return new Promise((resolve) => {
-      stoppedRef.current = resolve;
-      recorder.stop();
-    });
+  /** Stop the segment's recorders; resolves once their last chunks are queued. */
+  async function stopSegment() {
+    const seg = segmentRef.current;
+    if (!seg) return;
+    segmentRef.current = null;
+    await Promise.all(
+      recordersRef.current.map(
+        (r) => new Promise<void>((resolve) => {
+          if (r.state === "inactive") return resolve();
+          r.addEventListener("stop", () => resolve(), { once: true });
+          r.stop();
+        }),
+      ),
+    );
+    // A tick later, so the final dataavailable handlers have run.
+    await new Promise((r) => setTimeout(r, 0));
+    const queue = uploadQueue();
+    const duration = Date.now() - seg.startedAt;
+    for (const s of [seg.video, seg.frames, seg.audio]) {
+      if (s) await queue.endMedia(s.mediaId, s.index, duration, s.bytes);
+    }
   }
 
   async function next() {
@@ -152,16 +181,24 @@ export function Recorder({ token, mode, t, onDone }: { token: string; mode: Capt
     try {
       const queue = uploadQueue();
       for (const file of Array.from(files)) {
-        const seg = await postJson<{ mediaId: string }>(`/api/s/${token}/segments`, {
-          kind: file.type.startsWith("image/") ? "PHOTO" : "VIDEO",
-          contentType: file.type || "video/mp4",
+        const isVideo = file.type.startsWith("video/");
+        const ids = await postJson<SegmentIds>(`/api/s/${token}/segments`, {
+          streams: { FRAMES: "image/jpeg", ...(isVideo ? { VIDEO: file.type } : {}) },
         });
-        await queue.beginMedia(token, seg.mediaId);
-        let index = 0;
-        for (let offset = 0; offset < file.size; offset += FILE_CHUNK_BYTES) {
-          await queue.addChunk(token, seg.mediaId, index++, file.slice(offset, offset + FILE_CHUNK_BYTES, file.type));
+        for (const id of Object.values(ids.media)) await queue.beginMedia(token, id);
+
+        const frames = isVideo ? await framesFromVideoFile(file) : [{ blob: await frameFromImageFile(file), tMs: 0 }];
+        let n = 0;
+        for (const f of frames) if (f.blob) await queue.addChunk(token, ids.media.FRAMES, n++, f.blob, f.tMs);
+        await queue.endMedia(ids.media.FRAMES, n, 0, 0);
+
+        if (ids.media.VIDEO) {
+          let index = 0;
+          for (let offset = 0; offset < file.size; offset += FILE_CHUNK_BYTES) {
+            await queue.addChunk(token, ids.media.VIDEO, index++, file.slice(offset, offset + FILE_CHUNK_BYTES, file.type));
+          }
+          await queue.endMedia(ids.media.VIDEO, index, 0, file.size);
         }
-        await queue.endMedia(seg.mediaId, index, 0, file.size);
       }
       onDone();
     } catch {

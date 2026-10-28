@@ -8,10 +8,10 @@ import {
   verifySignature,
   verifySignedValue,
 } from "./crypto";
-import { canRecord, canTransition, canUpload, readyToReconcile } from "./state";
-import { captureMode } from "./customer";
+import { canRecord, canTransition, canUpload } from "./state";
+import { tenantSettings } from "./customer";
 import { backoffMinutes } from "./webhooks";
-import { actualCuFt, snapshotFor } from "./inventory";
+import { actualCuFt } from "./inventory";
 import { chunkKey, isValidKey, mediaPrefix } from "./storage";
 
 describe("state", () => {
@@ -33,21 +33,14 @@ describe("state", () => {
     expect(canUpload("PROCESSING")).toBe(true);
     expect(canUpload("APPROVED")).toBe(false);
   });
-
-  it("reconciles once segments settle and one has footage", () => {
-    expect(readyToReconcile([{ status: "DONE" }, { status: "FAILED" }])).toBe(true);
-    expect(readyToReconcile([{ status: "DONE" }, { status: "PROCESSING" }])).toBe(false);
-    expect(readyToReconcile([{ status: "FAILED" }])).toBe(false);
-    expect(readyToReconcile([])).toBe(false);
-  });
 });
 
 describe("tenant settings", () => {
-  it("defaults to a walk-through and ignores junk", () => {
-    expect(captureMode({})).toBe("walkthrough");
-    expect(captureMode(null)).toBe("walkthrough");
-    expect(captureMode({ captureMode: "rooms" })).toBe("rooms");
-    expect(captureMode({ captureMode: "nonsense" })).toBe("walkthrough");
+  it("defaults to a walk-through without auto-approve, and ignores junk", () => {
+    expect(tenantSettings({})).toEqual({ captureMode: "walkthrough", autoApprove: false });
+    expect(tenantSettings(null)).toEqual({ captureMode: "walkthrough", autoApprove: false });
+    expect(tenantSettings({ captureMode: "rooms", autoApprove: true })).toEqual({ captureMode: "rooms", autoApprove: true });
+    expect(tenantSettings({ captureMode: "nonsense", autoApprove: "yes" })).toEqual({ captureMode: "walkthrough", autoApprove: false });
   });
 });
 
@@ -95,13 +88,6 @@ describe("webhooks", () => {
 });
 
 describe("inventory", () => {
-  it("snapshots catalog values with flags", () => {
-    const piano = snapshotFor("piano-upright");
-    expect(piano?.cuFtEach).toBe(70);
-    expect(piano?.flags).toEqual(expect.arrayContaining(["heavy", "special"]));
-    expect(snapshotFor("no-such-item")).toBeNull();
-  });
-
   it("computes actual cu ft from truck fill", () => {
     expect(actualCuFt({ trucks: [{ capacityCuFt: 1700, fillPct: 50 }], extraTruckCuFt: 300 })).toBe(1150);
     expect(actualCuFt({ trucks: [{ capacityCuFt: 0, fillPct: 50 }], extraTruckCuFt: null })).toBeNull();

@@ -33,7 +33,6 @@ CREATE TABLE "Survey" (
     "publicToken" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'CREATED',
     "revision" INTEGER NOT NULL DEFAULT 0,
-    "version" INTEGER NOT NULL DEFAULT 0,
     "language" TEXT NOT NULL DEFAULT 'en',
     "customer" JSONB NOT NULL,
     "move" JSONB NOT NULL DEFAULT '{}',
@@ -41,6 +40,8 @@ CREATE TABLE "Survey" (
     "consentMedia" BOOLEAN NOT NULL DEFAULT false,
     "catalogVersion" INTEGER NOT NULL,
     "totals" JSONB,
+    "suggestions" JSONB,
+    "coverageGaps" JSONB NOT NULL DEFAULT '[]',
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "startedAt" TIMESTAMP(3),
     "finishedAt" TIMESTAMP(3),
@@ -58,12 +59,8 @@ CREATE TABLE "SurveyRoom" (
     "roomType" TEXT,
     "label" TEXT NOT NULL,
     "sortOrder" INTEGER NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'UPLOADING',
-    "quality" JSONB,
     "transcript" TEXT NOT NULL DEFAULT '',
-    "notes" TEXT NOT NULL DEFAULT '',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "SurveyRoom_pkey" PRIMARY KEY ("id")
 );
@@ -88,13 +85,11 @@ CREATE TABLE "Media" (
 -- CreateTable
 CREATE TABLE "Frame" (
     "id" TEXT NOT NULL,
+    "surveyId" TEXT NOT NULL,
     "mediaId" TEXT NOT NULL,
     "roomId" TEXT NOT NULL,
     "tMs" INTEGER NOT NULL,
     "storageKey" TEXT NOT NULL,
-    "fileId" TEXT,
-    "sharpness" DOUBLE PRECISION NOT NULL,
-    "selected" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Frame_pkey" PRIMARY KEY ("id")
 );
@@ -103,20 +98,18 @@ CREATE TABLE "Frame" (
 CREATE TABLE "Detection" (
     "id" TEXT NOT NULL,
     "surveyId" TEXT NOT NULL,
-    "roomId" TEXT NOT NULL,
+    "roomLabel" TEXT NOT NULL,
+    "roomType" TEXT NOT NULL,
     "catalogItemId" TEXT,
     "customLabel" TEXT,
-    "variant" TEXT,
     "quantity" INTEGER NOT NULL,
     "confidence" DOUBLE PRECISION NOT NULL,
-    "attributes" JSONB NOT NULL DEFAULT '{}',
-    "evidence" JSONB NOT NULL DEFAULT '[]',
-    "dims" JSONB,
-    "status" TEXT NOT NULL DEFAULT 'PROPOSED',
+    "moving" BOOLEAN NOT NULL DEFAULT true,
+    "estimated" BOOLEAN NOT NULL DEFAULT false,
+    "frameIds" JSONB NOT NULL DEFAULT '[]',
+    "note" TEXT NOT NULL DEFAULT '',
     "source" TEXT NOT NULL DEFAULT 'AI',
-    "valueSnapshot" JSONB,
-    "mergedIntoId" TEXT,
-    "version" INTEGER NOT NULL DEFAULT 0,
+    "snapshot" JSONB NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -152,18 +145,15 @@ CREATE TABLE "Outcome" (
 CREATE TABLE "PipelineRun" (
     "id" TEXT NOT NULL,
     "surveyId" TEXT NOT NULL,
-    "roomId" TEXT,
-    "stage" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'QUEUED',
-    "attempt" INTEGER NOT NULL DEFAULT 1,
-    "outputKey" TEXT,
-    "servedModel" TEXT,
-    "promptVersion" TEXT,
-    "usage" JSONB,
+    "status" TEXT NOT NULL DEFAULT 'RUNNING',
+    "lockedUntil" TIMESTAMP(3),
+    "state" JSONB NOT NULL DEFAULT '{}',
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "servedModel" TEXT NOT NULL DEFAULT '',
+    "usage" JSONB NOT NULL DEFAULT '{}',
     "error" TEXT NOT NULL DEFAULT '',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "startedAt" TIMESTAMP(3),
-    "finishedAt" TIMESTAMP(3),
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "PipelineRun_pkey" PRIMARY KEY ("id")
 );
@@ -206,10 +196,10 @@ CREATE INDEX "SurveyRoom_surveyId_idx" ON "SurveyRoom"("surveyId");
 CREATE UNIQUE INDEX "Media_storagePrefix_key" ON "Media"("storagePrefix");
 
 -- CreateIndex
-CREATE INDEX "Media_roomId_idx" ON "Media"("roomId");
+CREATE INDEX "Media_surveyId_idx" ON "Media"("surveyId");
 
 -- CreateIndex
-CREATE INDEX "Frame_roomId_idx" ON "Frame"("roomId");
+CREATE INDEX "Frame_surveyId_idx" ON "Frame"("surveyId");
 
 -- CreateIndex
 CREATE INDEX "Detection_surveyId_idx" ON "Detection"("surveyId");
@@ -221,10 +211,10 @@ CREATE INDEX "Correction_surveyId_idx" ON "Correction"("surveyId");
 CREATE UNIQUE INDEX "Outcome_surveyId_key" ON "Outcome"("surveyId");
 
 -- CreateIndex
-CREATE INDEX "PipelineRun_surveyId_idx" ON "PipelineRun"("surveyId");
+CREATE UNIQUE INDEX "PipelineRun_surveyId_key" ON "PipelineRun"("surveyId");
 
 -- CreateIndex
-CREATE INDEX "PipelineRun_status_createdAt_idx" ON "PipelineRun"("status", "createdAt");
+CREATE INDEX "PipelineRun_status_updatedAt_idx" ON "PipelineRun"("status", "updatedAt");
 
 -- CreateIndex
 CREATE INDEX "WebhookDelivery_status_nextAttemptAt_idx" ON "WebhookDelivery"("status", "nextAttemptAt");
@@ -245,6 +235,9 @@ ALTER TABLE "Media" ADD CONSTRAINT "Media_surveyId_fkey" FOREIGN KEY ("surveyId"
 ALTER TABLE "Media" ADD CONSTRAINT "Media_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "SurveyRoom"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Frame" ADD CONSTRAINT "Frame_surveyId_fkey" FOREIGN KEY ("surveyId") REFERENCES "Survey"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Frame" ADD CONSTRAINT "Frame_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -252,9 +245,6 @@ ALTER TABLE "Frame" ADD CONSTRAINT "Frame_roomId_fkey" FOREIGN KEY ("roomId") RE
 
 -- AddForeignKey
 ALTER TABLE "Detection" ADD CONSTRAINT "Detection_surveyId_fkey" FOREIGN KEY ("surveyId") REFERENCES "Survey"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Detection" ADD CONSTRAINT "Detection_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "SurveyRoom"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Correction" ADD CONSTRAINT "Correction_surveyId_fkey" FOREIGN KEY ("surveyId") REFERENCES "Survey"("id") ON DELETE CASCADE ON UPDATE CASCADE;

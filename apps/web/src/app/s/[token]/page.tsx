@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { Language } from "@move-survey/contracts";
 import { db } from "@/lib/db";
-import { captureMode } from "@/lib/customer";
+import { tenantSettings } from "@/lib/customer";
 import { DICTIONARIES } from "@/lib/i18n";
 import { CaptureApp } from "@/components/capture/capture-app";
 
@@ -24,7 +24,7 @@ export default async function SurveyPage({ params }: { params: Promise<{ token: 
   return (
     <CaptureApp
       token={token}
-      mode={captureMode(survey.tenant.settings)}
+      mode={tenantSettings(survey.tenant.settings).captureMode}
       initialLanguage={survey.language as Language}
       started={survey.status === "IN_PROGRESS"}
       finished={survey.finishedAt !== null}

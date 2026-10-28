@@ -10,8 +10,7 @@ datasource db {
 }
 
 // Status columns are Strings constrained by @move-survey/contracts + zod at
-// every write boundary, same convention as the CRM. JSON columns hold
-// contract-shaped data validated on the way in.
+// every write boundary, same convention as the CRM.
 
 // ---------- Tenants ----------
 
@@ -21,7 +20,7 @@ model Tenant {
   slug          String   @unique
   webhookUrl    String   @default("")
   webhookSecret String
-  // Per-tenant switches (confirmation required, retention days, ...).
+  // { captureMode: "walkthrough" | "rooms", autoApprove: boolean }
   settings      Json     @default("{}")
   createdAt     DateTime @default(now())
 
@@ -35,7 +34,7 @@ model ApiKey {
   tenantId   String
   tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name       String
-  // First characters of the key, shown in admin and used to find the row.
+  // First characters of the key, used to find the row.
   prefix     String    @unique
   // sha256 of the whole key; the key itself is shown once and never stored.
   hash       String
@@ -55,15 +54,15 @@ model Survey {
   status         String    @default("CREATED") // contracts SURVEY_STATUSES
   // Bumped whenever the published inventory changes; the CRM applies only newer ones.
   revision       Int       @default(0)
-  // Optimistic lock for concurrent customer / estimator edits.
-  version        Int       @default(0)
   language       String    @default("en")
   customer       Json
   move           Json      @default("{}")
   answers        Json      @default("{}")
   consentMedia   Boolean   @default(false)
   catalogVersion Int
-  totals         Json?
+  totals         Json? // contracts Totals
+  suggestions    Json? // contracts Suggestions
+  coverageGaps   Json      @default("[]") // ["Bedroom: closet not opened", …] shown to the reviewer
   expiresAt      DateTime
   startedAt      DateTime?
   finishedAt     DateTime?
@@ -73,96 +72,88 @@ model Survey {
 
   rooms       SurveyRoom[]
   media       Media[]
+  frames      Frame[]
   detections  Detection[]
   corrections Correction[]
   outcome     Outcome?
-  runs        PipelineRun[]
+  run         PipelineRun?
 
   @@index([tenantId, externalRef])
   @@index([status])
 }
 
+// One recorded segment: a walk-through part, or a room in room-by-room mode.
 model SurveyRoom {
   id         String   @id @default(cuid())
   surveyId   String
   survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  // Known in room-by-room mode; in a walk-through the AI works rooms out.
-  roomType   String? // catalog ROOM_TYPES
+  roomType   String? // set in room-by-room mode; otherwise the AI names rooms
   label      String
   sortOrder  Int
-  status     String   @default("UPLOADING") // contracts ROOM_STATUSES
-  quality    Json?
   transcript String   @default("")
-  notes      String   @default("")
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 
-  media      Media[]
-  frames     Frame[]
-  detections Detection[]
+  media  Media[]
+  frames Frame[]
 
   @@index([surveyId])
 }
 
-// One recording (or photo) of a segment. Video arrives as numbered chunks that
-// concatenate into one file: MediaRecorder output is a single stream.
+// One stream of a segment, uploaded as numbered chunks under storagePrefix.
+// VIDEO chunks concatenate into one file; each FRAMES chunk is one JPEG.
 model Media {
-  id          String   @id @default(cuid())
-  surveyId    String
-  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  roomId      String
-  room        SurveyRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  kind        String // VIDEO | PHOTO | AUDIO
-  contentType String
-  // Folder (prefix) holding chunk-00000, chunk-00001, ...
-  storagePrefix String @unique
-  chunkCount  Int      @default(0)
-  sizeBytes   Int?
-  durationMs  Int?
-  status      String   @default("UPLOADING") // UPLOADING | COMPLETE | FAILED
-  createdAt   DateTime @default(now())
+  id            String     @id @default(cuid())
+  surveyId      String
+  survey        Survey     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  roomId        String
+  room          SurveyRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  kind          String // contracts MEDIA_KINDS
+  contentType   String
+  storagePrefix String     @unique
+  chunkCount    Int        @default(0)
+  sizeBytes     Int?
+  durationMs    Int?
+  status        String     @default("UPLOADING") // UPLOADING | COMPLETE
+  createdAt     DateTime   @default(now())
 
   frames Frame[]
 
-  @@index([roomId])
+  @@index([surveyId])
 }
 
 model Frame {
-  id         String  @id @default(cuid())
+  id         String     @id @default(cuid())
+  surveyId   String
+  survey     Survey     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   mediaId    String
-  media      Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  media      Media      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
   roomId     String
   room       SurveyRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
   tMs        Int
   storageKey String
-  // Anthropic Files API id, so stages and re-runs reference the image once.
-  fileId     String?
-  sharpness  Float
-  selected   Boolean @default(false)
 
-  @@index([roomId])
+  @@index([surveyId])
 }
 
+// One inventory line. The AI writes them at finalize; the reviewer may edit,
+// add or mark them not moving. Values are frozen in `snapshot` so catalog
+// updates never move an old survey.
 model Detection {
   id            String   @id @default(cuid())
   surveyId      String
   survey        Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  roomId        String
-  room          SurveyRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomLabel     String
+  roomType      String
   catalogItemId String?
   customLabel   String?
-  variant       String?
   quantity      Int
   confidence    Float
-  attributes    Json     @default("{}")
-  evidence      Json     @default("[]")
-  dims          Json?
-  status        String   @default("PROPOSED") // contracts DETECTION_STATUSES
+  moving        Boolean  @default(true)
+  estimated     Boolean  @default(false) // packed boxes estimated, not seen
+  frameIds      Json     @default("[]")
+  note          String   @default("")
   source        String   @default("AI") // contracts DETECTION_SOURCES
-  // Catalog values frozen at finalize, so catalog updates never move old surveys.
-  valueSnapshot Json?
-  mergedIntoId  String?
-  version       Int      @default(0)
+  snapshot      Json // { name, cuFtEach, weightLbsEach, flags }
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -171,17 +162,17 @@ model Detection {
   @@index([surveyId])
 }
 
-// Every human change to a detection: eval data and catalog feedback.
+// Every reviewer change: eval data and catalog feedback.
 model Correction {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   surveyId    String
-  survey      Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  survey      Survey     @relation(fields: [surveyId], references: [id], onDelete: Cascade)
   detectionId String?
   detection   Detection? @relation(fields: [detectionId], references: [id], onDelete: SetNull)
-  actor       String // "customer" or the CRM user's name
+  actor       String
   before      Json?
   after       Json?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime   @default(now())
 
   @@index([surveyId])
 }
@@ -197,25 +188,24 @@ model Outcome {
   updatedAt  DateTime @updatedAt
 }
 
+// The analysis of one survey: its progress lives in `state`, so the work can
+// be split across short function runs and resumed after a crash.
 model PipelineRun {
-  id            String    @id @default(cuid())
-  surveyId      String
-  survey        Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  roomId        String?
-  stage         String // contracts PIPELINE_STAGES
-  status        String    @default("QUEUED") // QUEUED | RUNNING | DONE | FAILED | STALE
-  attempt       Int       @default(1)
-  outputKey     String?
-  servedModel   String?
-  promptVersion String?
-  usage         Json?
-  error         String    @default("")
-  createdAt     DateTime  @default(now())
-  startedAt     DateTime?
-  finishedAt    DateTime?
+  id          String    @id @default(cuid())
+  surveyId    String    @unique
+  survey      Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  status      String    @default("RUNNING") // RUNNING | DONE | FAILED
+  // Lease: only one function run works on a survey at a time.
+  lockedUntil DateTime?
+  state       Json      @default("{}")
+  attempts    Int      @default(0)
+  servedModel String   @default("")
+  usage       Json     @default("{}")
+  error       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@index([surveyId])
-  @@index([status, createdAt])
+  @@index([status, updatedAt])
 }
 
 // Outbox: a row per webhook to send; the cron delivers with backoff.

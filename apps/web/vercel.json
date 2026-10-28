@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/pipeline", "schedule": "* * * * *" },
+    { "path": "/api/cron/webhooks", "schedule": "* * * * *" }
+  ]
+}

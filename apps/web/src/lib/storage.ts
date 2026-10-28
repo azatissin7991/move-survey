@@ -15,8 +15,10 @@ import { signValue, verifySignedValue } from "./crypto";
 export interface Storage {
   /** URL the browser PUTs one object to, valid for `ttlSeconds`. */
   presignPut(key: string, contentType: string, ttlSeconds: number): Promise<string>;
-  /** Short-lived URL to read one object (review UI, worker). */
+  /** Short-lived URL to read one object (review screen). */
   presignGet(key: string, ttlSeconds: number): Promise<string>;
+  /** The object's bytes (pipeline). */
+  get(key: string): Promise<Uint8Array>;
 }
 
 export function mediaPrefix(surveyId: string, roomId: string, mediaId: string): string {
@@ -48,6 +50,9 @@ class LocalStorage implements Storage {
   async presignGet(key: string, ttlSeconds: number) {
     const token = signValue(appSecret(), `get:${key}`, Date.now() + ttlSeconds * 1000);
     return `${process.env.APP_URL ?? ""}/api/dev-storage?key=${encodeURIComponent(key)}&token=${encodeURIComponent(token)}`;
+  }
+  async get(key: string) {
+    return new Uint8Array(await readFile(path.join(LOCAL_ROOT, key)));
   }
 }
 
@@ -90,6 +95,10 @@ class R2Storage implements Storage {
   }
   presignGet(key: string, ttlSeconds: number) {
     return getSignedUrl(this.client, new GetObjectCommand({ Bucket: this.bucket, Key: key }), { expiresIn: ttlSeconds });
+  }
+  async get(key: string) {
+    const res = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
+    return res.Body!.transformToByteArray();
   }
 }
 

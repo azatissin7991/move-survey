@@ -116,6 +116,12 @@
         "cuFt": {
           "type": "number"
         },
+        "cuFtLow": {
+          "type": "number"
+        },
+        "cuFtHigh": {
+          "type": "number"
+        },
         "weightLbs": {
           "type": "number"
         },
@@ -132,9 +138,34 @@
       },
       "required": [
         "cuFt",
+        "cuFtLow",
+        "cuFtHigh",
         "weightLbs",
         "items",
         "boxes"
+      ]
+    },
+    "suggestions": {
+      "type": "object",
+      "properties": {
+        "trucks": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "crew": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "laborHours": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "trucks",
+        "crew",
+        "laborHours"
       ]
     }
   },
@@ -143,6 +174,7 @@
     "revision",
     "catalogVersion",
     "items",
-    "totals"
+    "totals",
+    "suggestions"
   ]
 }

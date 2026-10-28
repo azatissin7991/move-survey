@@ -11,14 +11,12 @@ import {
   createSurveyRequestSchema,
   inventoryResponseSchema,
   outcomeRequestSchema,
-  reconciliationSchema,
-  roomAnalysisSchema,
+  inventoryDraftSchema,
   webhookPayloadSchema,
 } from "../src";
 
 const schemas = {
-  "room-analysis": roomAnalysisSchema,
-  reconciliation: reconciliationSchema,
+  "inventory-draft": inventoryDraftSchema,
   "create-survey-request": createSurveyRequestSchema,
   "inventory-response": inventoryResponseSchema,
   "outcome-request": outcomeRequestSchema,

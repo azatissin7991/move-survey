@@ -25,6 +25,24 @@ export const createSurveyRequestSchema = z.object({
 });
 export type CreateSurveyRequest = z.infer<typeof createSurveyRequestSchema>;
 
+/** The ballpark: a midpoint and the range the true volume likely falls in. */
+export const totalsSchema = z.object({
+  cuFt: z.number(),
+  cuFtLow: z.number(),
+  cuFtHigh: z.number(),
+  weightLbs: z.number(),
+  items: z.number().int(),
+  boxes: z.number().int(),
+});
+export type Totals = z.infer<typeof totalsSchema>;
+
+export const suggestionsSchema = z.object({
+  trucks: z.number().int(),
+  crew: z.number().int(),
+  laborHours: z.number(),
+});
+export type Suggestions = z.infer<typeof suggestionsSchema>;
+
 export const surveySummarySchema = z.object({
   id: z.string(),
   externalRef: z.string(),
@@ -32,11 +50,12 @@ export const surveySummarySchema = z.object({
   revision: z.number().int(),
   customerUrl: z.string().url(),
   expiresAt: z.string(),
-  totals: z
-    .object({ cuFt: z.number(), weightLbs: z.number(), items: z.number().int(), boxes: z.number().int() })
-    .nullable(),
+  totals: totalsSchema.nullable(),
+  suggestions: suggestionsSchema.nullable(),
 });
 export type SurveySummary = z.infer<typeof surveySummarySchema>;
+
+export const ITEM_FLAGS = ["fragile", "disassembly", "heavy", "crating", "special"] as const;
 
 export const inventoryItemSchema = z.object({
   catalogId: z.string().nullable(),
@@ -46,16 +65,18 @@ export const inventoryItemSchema = z.object({
   quantity: z.number().int().positive(),
   cuFtEach: z.number().positive(),
   weightLbsEach: z.number().int().positive(),
-  flags: z.array(z.enum(["fragile", "disassembly", "heavy", "crating", "special"])),
+  flags: z.array(z.enum(ITEM_FLAGS)),
   notes: z.string(),
 });
+export type InventoryItem = z.infer<typeof inventoryItemSchema>;
 
 export const inventoryResponseSchema = z.object({
   surveyId: z.string(),
   revision: z.number().int(),
   catalogVersion: z.number().int(),
   items: z.array(inventoryItemSchema),
-  totals: z.object({ cuFt: z.number(), weightLbs: z.number(), items: z.number().int(), boxes: z.number().int() }),
+  totals: totalsSchema,
+  suggestions: suggestionsSchema,
 });
 export type InventoryResponse = z.infer<typeof inventoryResponseSchema>;
 

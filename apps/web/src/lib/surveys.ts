@@ -36,6 +36,7 @@ export function toSummary(survey: Survey): SurveySummary {
     customerUrl: customerUrl(survey.publicToken),
     expiresAt: survey.expiresAt.toISOString(),
     totals: (survey.totals as SurveySummary["totals"]) ?? null,
+    suggestions: (survey.suggestions as SurveySummary["suggestions"]) ?? null,
   };
 }
 

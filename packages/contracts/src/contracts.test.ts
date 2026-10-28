@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createSurveyRequestSchema, roomAnalysisSchema, webhookPayloadSchema } from "./index";
+import { createSurveyRequestSchema, inventoryDraftSchema, webhookPayloadSchema } from "./index";
 
 describe("contracts", () => {
   it("fills request defaults", () => {
@@ -10,36 +10,30 @@ describe("contracts", () => {
     expect(parsed.move).toEqual({});
   });
 
-  it("accepts a well-formed room analysis", () => {
-    const ok = roomAnalysisSchema.safeParse({
+  it("accepts a well-formed inventory draft", () => {
+    const ok = inventoryDraftSchema.safeParse({
+      rooms: [{ label: "Living room", roomType: "living_room", fullness: "average", coverageGaps: [] }],
       items: [
         {
           catalogId: "sofa-3-seat",
           customLabel: null,
+          room: "Living room",
           quantity: 1,
           confidence: 0.9,
-          evidence: [{ frameId: "f1", tMs: 1200 }],
-          fragile: false,
-          needsDisassembly: false,
-          notGoingHint: false,
-          needsMeasurement: false,
+          frameIds: ["f1"],
+          notMoving: false,
           approxDims: null,
           note: null,
         },
       ],
-      fullness: "average",
-      packedBoxesSeen: {},
-      coverageGaps: [],
     });
     expect(ok.success).toBe(true);
   });
 
   it("rejects an item with no evidence", () => {
-    const bad = roomAnalysisSchema.safeParse({
-      items: [{ catalogId: "x", customLabel: null, quantity: 1, confidence: 1, evidence: [] }],
-      fullness: "average",
-      packedBoxesSeen: {},
-      coverageGaps: [],
+    const bad = inventoryDraftSchema.safeParse({
+      rooms: [],
+      items: [{ catalogId: "x", customLabel: null, room: "a", quantity: 1, confidence: 1, frameIds: [] }],
     });
     expect(bad.success).toBe(false);
   });

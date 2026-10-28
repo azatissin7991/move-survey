@@ -1,7 +1,7 @@
 // Survey state rules. Pure, so every edge case is unit-tested; the routes call
 // these before writing and refuse anything they reject.
 
-import type { RoomStatus, SurveyStatus } from "@move-survey/contracts";
+import type { SurveyStatus } from "@move-survey/contracts";
 
 const SURVEY_TRANSITIONS: Record<SurveyStatus, SurveyStatus[]> = {
   CREATED: ["IN_PROGRESS", "CANCELLED", "EXPIRED"],
@@ -23,15 +23,3 @@ export const canRecord = (status: SurveyStatus) => status === "CREATED" || statu
 
 /** Uploads keep draining after Done: the phone may still be sending chunks. */
 export const canUpload = (status: SurveyStatus) => canRecord(status) || status === "PROCESSING";
-
-/**
- * The whole-house stages can run once every segment has settled and at least
- * one produced something.
- */
-export function readyToReconcile(rooms: { status: RoomStatus }[]): boolean {
-  return (
-    rooms.length > 0 &&
-    rooms.every((r) => r.status === "DONE" || r.status === "FAILED") &&
-    rooms.some((r) => r.status === "DONE")
-  );
-}

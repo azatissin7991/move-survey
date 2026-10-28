@@ -7,10 +7,12 @@ const DB_NAME = "move-survey";
 const DB_VERSION = 1;
 
 type ChunkRow = { mediaId: string; index: number; token: string; blob: Blob };
-type MediaRow = { mediaId: string; token: string; total: number | null; durationMs: number; sizeBytes: number };
+// `times` holds each frame's position in the recording, for FRAMES media.
+type MediaRow = { mediaId: string; token: string; total: number | null; durationMs: number; sizeBytes: number; times: number[] };
 
+let dbPromise: Promise<IDBDatabase> | undefined;
 function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
+  return (dbPromise ??= new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
@@ -19,7 +21,7 @@ function openDb(): Promise<IDBDatabase> {
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
-  });
+  }));
 }
 
 function tx<T>(store: string, mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
@@ -41,6 +43,12 @@ export async function postJson<T>(url: string, body: unknown): Promise<T> {
 }
 
 type Listener = (pending: number) => void;
+
+/** A 4xx other than timeout / rate limit won't succeed on retry: drop the item. */
+function permanent(e: unknown): boolean {
+  const status = (e as { status?: number }).status;
+  return status !== undefined && status >= 400 && status < 500 && status !== 408 && status !== 429;
+}
 
 class UploadQueue {
   private running = false;
@@ -73,10 +81,14 @@ class UploadQueue {
 
   /** A new recording: remember it so a reload can still finish it. */
   async beginMedia(token: string, mediaId: string) {
-    await tx("media", "readwrite", (s) => s.put({ mediaId, token, total: null, durationMs: 0, sizeBytes: 0 } satisfies MediaRow));
+    await tx("media", "readwrite", (s) => s.put({ mediaId, token, total: null, durationMs: 0, sizeBytes: 0, times: [] } satisfies MediaRow));
   }
 
-  async addChunk(token: string, mediaId: string, index: number, blob: Blob) {
+  async addChunk(token: string, mediaId: string, index: number, blob: Blob, tMs?: number) {
+    if (tMs !== undefined) {
+      const row = await tx<MediaRow | undefined>("media", "readonly", (s) => s.get(mediaId));
+      if (row) await tx("media", "readwrite", (s) => s.put({ ...row, times: [...row.times, tMs] }));
+    }
     await tx("chunks", "readwrite", (s) => s.put({ mediaId, index, token, blob } satisfies ChunkRow));
     await this.notify();
     this.kick();
@@ -116,11 +128,10 @@ class UploadQueue {
           index: chunk.index,
         });
         const put = await fetch(url, { method: "PUT", body: chunk.blob, headers: { "content-type": chunk.blob.type || "application/octet-stream" } });
-        if (!put.ok) throw new Error(`upload HTTP ${put.status}`);
+        if (!put.ok) throw Object.assign(new Error(`upload HTTP ${put.status}`), { status: put.status });
       } catch (e) {
         // A recording the server no longer accepts (replaced, survey closed) is dropped.
-        const status = (e as { status?: number }).status;
-        if (status !== 404 && status !== 409) throw e;
+        if (!permanent(e)) throw e;
       }
       await tx("chunks", "readwrite", (s) => s.delete([chunk.mediaId, chunk.index]));
       await this.notify();
@@ -137,10 +148,10 @@ class UploadQueue {
           chunkCount: m.total,
           durationMs: Math.round(m.durationMs),
           sizeBytes: m.sizeBytes,
+          ...(m.times.length ? { frameTimes: m.times } : {}),
         });
       } catch (e) {
-        const status = (e as { status?: number }).status;
-        if (status !== 404 && status !== 409) throw e;
+        if (!permanent(e)) throw e;
       }
       await tx("media", "readwrite", (s) => s.delete(m.mediaId));
     }

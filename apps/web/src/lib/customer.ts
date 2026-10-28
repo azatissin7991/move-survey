@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { ROOM_TYPES } from "@move-survey/catalog";
-import { CAPTURE_MODES, LANGUAGES, type CaptureMode, type SurveyStatus } from "@move-survey/contracts";
+import { CAPTURE_MODES, LANGUAGES, type SurveyStatus } from "@move-survey/contracts";
 import { jsonError } from "./api-auth";
 import { canRecord, canUpload } from "./state";
 import { surveyForToken } from "./surveys";
@@ -20,12 +20,15 @@ export async function linkedSurvey(token: string, allowed: (s: SurveyStatus) => 
 export const recordable = (token: string) => linkedSurvey(token, canRecord);
 export const uploadable = (token: string) => linkedSurvey(token, canUpload);
 
-/** Per-company switches, stored as JSON on the tenant. */
+/** Per-company switches, stored as JSON on the tenant. Bad values fall back to defaults. */
 const tenantSettingsSchema = z.object({
   captureMode: z.enum(CAPTURE_MODES).catch("walkthrough"),
+  // Confident surveys skip review and go straight to the CRM.
+  autoApprove: z.boolean().catch(false),
 });
-export function captureMode(settings: unknown): CaptureMode {
-  return tenantSettingsSchema.parse(settings ?? {}).captureMode;
+export type TenantSettings = z.infer<typeof tenantSettingsSchema>;
+export function tenantSettings(settings: unknown): TenantSettings {
+  return tenantSettingsSchema.parse(settings && typeof settings === "object" ? settings : {});
 }
 
 export const startRequestSchema = z.object({
@@ -35,12 +38,14 @@ export const startRequestSchema = z.object({
 });
 
 export const segmentRequestSchema = z.object({
-  kind: z.enum(["VIDEO", "PHOTO"]),
-  contentType: z
-    .string()
-    .regex(/^(video\/(mp4|webm|quicktime)|image\/(jpeg|png|heic|webp))(;.*)?$/, "Unsupported media type"),
   // Only in room-by-room mode; a walk-through leaves rooms to the AI.
   roomType: z.enum(ROOM_TYPES).optional(),
+  // Content type of each stream the phone will send for this segment.
+  streams: z.object({
+    VIDEO: z.string().regex(/^video\/(mp4|webm|quicktime)$/, "Unsupported video type").optional(),
+    FRAMES: z.literal("image/jpeg"),
+    AUDIO: z.string().regex(/^audio\/(mp4|webm)$/, "Unsupported audio type").optional(),
+  }),
 });
 
 export const MAX_CHUNKS = 1500; // 50 min at 2 s chunks; a whole home is 5–15 min
@@ -48,7 +53,8 @@ export const MAX_CHUNKS = 1500; // 50 min at 2 s chunks; a whole home is 5–15 
 export const chunkRequestSchema = z.object({ index: z.number().int().min(0).max(MAX_CHUNKS - 1) });
 
 export const completeRequestSchema = z.object({
-  chunkCount: z.number().int().min(1).max(MAX_CHUNKS),
+  chunkCount: z.number().int().min(0).max(MAX_CHUNKS), // 0: a very short segment kept no frames
   durationMs: z.number().int().min(0).max(3_600_000).optional(),
-  sizeBytes: z.number().int().min(1).max(4 * 1024 ** 3).optional(),
+  sizeBytes: z.number().int().min(0).max(4 * 1024 ** 3).optional(),
+  frameTimes: z.array(z.number().int().min(0)).max(MAX_CHUNKS).optional(), // FRAMES only
 });
